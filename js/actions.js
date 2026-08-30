@@ -53,7 +53,7 @@ async function onClick(e) {
 
     case "pick":
       store.setSlot(d.slot, d.id);
-      closeSheet();
+      renderSheet();
       render();
       toast(mealById(d.id).name + " · " + slotLabel(d.slot));
       break;
@@ -150,7 +150,7 @@ async function onClick(e) {
 
     case "assign-slot":
       store.setSlot(d.slot, d.id);
-      closeSheet();
+      openSheet({ type: "slot", slot: d.slot });
       render();
       toast(slotLabel(d.slot) + " · " + mealById(d.id).name);
       break;
