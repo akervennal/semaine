@@ -2,7 +2,7 @@
 // sans effet de bord : les interactions passent par des attributs data-act
 // que actions.js intercepte par delegation.
 
-import { DAYS, MOMENTS, SLOTS, slotLabel, parseIso, addDays, fmtShort, weekRange, esc, normKey } from "./model.js";
+import { MOMENTS, slotLabel, orderedDays, parseIso, addDays, fmtShort, weekRange, esc, normKey } from "./model.js";
 import { state, mealById, plannedCount, canPersist } from "./store.js";
 import { shoppingList, pruneChecked, doneCount } from "./shopping.js";
 import { ui } from "./uistate.js";
@@ -41,7 +41,7 @@ export const VIEWS = {
     const start = parseIso(state.week.start);
     let html = "";
 
-    DAYS.forEach((d, i) => {
+    orderedDays(state.week.start).forEach((d, i) => {
       const date = addDays(start, i);
       html += `<section class="card">
         <div class="card-head"><span class="eyebrow">${esc(d.n)}</span><span class="d">${esc(fmtShort(date))}</span></div>
@@ -111,7 +111,7 @@ export const VIEWS = {
         <div class="card-head"><span class="eyebrow">Semaine en cours</span></div>
         <div style="padding:14px">
           <label class="field" style="margin-bottom:14px">
-            <span class="eyebrow">Premier jour (lundi)</span>
+            <span class="eyebrow">Premier jour de la semaine</span>
             <input class="input" type="date" id="wstart" value="${esc(state.week.start)}">
           </label>
           <button class="btn danger" data-act="end-week">Terminer la semaine</button>

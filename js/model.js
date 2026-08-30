@@ -24,17 +24,18 @@ export const slotMoment = id => MOMENTS.find(m => m.k === id.split("-")[1]);
 export const slotLabel = id => slotDay(id).n + " " + slotMoment(id).n.toLowerCase();
 export const dayIndex = id => DAYS.findIndex(d => d.k === id.split("-")[0]);
 
+// Une semaine peut commencer n'importe quel jour (pas forcement lundi) : on fait
+// tourner DAYS pour que l'affichage commence au jour reel de `startIso`. Les cles
+// de creneau (lun-midi, mar-soir...) restent inchangees, seul l'ordre d'affichage bouge.
+export function orderedDays(startIso) {
+  const idx = (parseIso(startIso).getDay() + 6) % 7;
+  return DAYS.slice(idx).concat(DAYS.slice(0, idx));
+}
+
 export const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
 
 /* ---------- dates ---------- */
 // Midi comme heure de reference : evite les decalages de fuseau au passage a l'ISO.
-
-export function mondayOf(date) {
-  const x = new Date(date);
-  x.setHours(12, 0, 0, 0);
-  x.setDate(x.getDate() - ((x.getDay() + 6) % 7));
-  return x;
-}
 
 export function iso(d) {
   return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");

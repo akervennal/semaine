@@ -3,7 +3,7 @@
 // complete des interactions possibles. Ajouter une fonctionnalite =
 // ajouter un data-act dans une vue et un case ici.
 
-import { SLOTS, slotLabel, iso, mondayOf, parseIso } from "./model.js";
+import { slotLabel } from "./model.js";
 import * as store from "./store.js";
 import { state, mealById } from "./store.js";
 import { ui } from "./uistate.js";

@@ -7,7 +7,7 @@
 // Ces deux notions restent separees : un meme repas peut occuper plusieurs creneaux
 // sans etre duplique dans la bibliotheque.
 
-import { SLOTS, iso, mondayOf, uid, normKey } from "./model.js";
+import { SLOTS, iso, uid, normKey } from "./model.js";
 
 const KEY = "semaine.v1";
 
@@ -22,7 +22,9 @@ try {
 
 export const canPersist = () => canStore;
 
-export const emptyWeek = startIso => ({ start: startIso || iso(mondayOf(new Date())), slots: {} });
+// Aucun jour impose : la semaine demarre le jour choisi (courses du samedi soir,
+// du dimanche midi, peu importe). Par defaut, aujourd'hui.
+export const emptyWeek = startIso => ({ start: startIso || iso(new Date()), slots: {} });
 export const blank = () => ({ meals: [], week: emptyWeek(), checked: {}, history: [] });
 
 function read() {
@@ -132,8 +134,9 @@ export function setPeople(slot, people) {
   save();
 }
 
+// Le premier jour peut etre n'importe quel jour de la semaine, choisi librement.
 export function setWeekStart(dateIso) {
-  state.week.start = iso(mondayOf(new Date(dateIso + "T12:00:00")));
+  state.week.start = dateIso;
   save();
 }
 

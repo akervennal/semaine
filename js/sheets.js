@@ -1,7 +1,7 @@
 // sheets.js — les panneaux qui montent du bas. Meme principe que les vues :
 // des chaines HTML, pilotees par data-act.
 
-import { DAYS, MOMENTS, slotLabel, weekRange, parseIso, addDays, fmtShort, esc } from "./model.js";
+import { MOMENTS, slotLabel, orderedDays, weekRange, parseIso, addDays, fmtShort, esc } from "./model.js";
 import { state, mealById, slotsUsing } from "./store.js";
 import { ui } from "./uistate.js";
 
@@ -101,7 +101,7 @@ export const SHEETS = {
     if (!w) return sheetShell("Semaine introuvable", "", "");
 
     const start = parseIso(w.start);
-    const days = DAYS.map((d, i) => {
+    const days = orderedDays(w.start).map((d, i) => {
       const date = addDays(start, i);
       const rows = MOMENTS.map(m => {
         const id = d.k + "-" + m.k;
