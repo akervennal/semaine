@@ -17,10 +17,7 @@ export const HEADS = {
 
   repas() {
     return `<div><h1>Repas</h1><p class="sub">${state.meals.length} repas dans la bibliothèque</p></div>
-      <div style="display:flex;gap:8px;align-items:center">
-        ${state.meals.length ? `<button class="btn quiet btn-sm" data-act="select-mode">${ui.selection ? "Annuler" : "Choisir"}</button>` : ""}
-        <button class="add" data-act="new-meal" aria-label="Créer un repas">+</button>
-      </div>`;
+      <button class="add" data-act="new-meal" aria-label="Créer un repas">+</button>`;
   },
 
   courses() {
@@ -184,14 +181,12 @@ export function mealList() {
 }
 
 export function mealRow(m) {
-  const picked = ui.selection && ui.selection.has(m.id);
   const ings = m.ingredients || [];
   return `<div class="row" style="padding-right:6px">
-    ${ui.selection ? `<span class="sel${picked ? " on" : ""}"></span>` : ""}
-    <button class="body" data-act="${ui.selection ? "sel-toggle" : "meal"}" data-id="${m.id}" style="text-align:left;min-height:34px">
+    <button class="body" data-act="meal" data-id="${m.id}" style="text-align:left;min-height:34px">
       <span class="title">${esc(m.name)}</span>
       <span class="meta">${esc(ings.slice(0, 4).join(", "))}${ings.length > 4 ? "…" : ""}</span>
     </button>
-    ${ui.selection ? "" : `<button class="star${m.fav ? " on" : ""}" data-act="fav" data-id="${m.id}" aria-label="Favori">${m.fav ? "★" : "☆"}</button>`}
+    <button class="star${m.fav ? " on" : ""}" data-act="fav" data-id="${m.id}" aria-label="Favori">${m.fav ? "★" : "☆"}</button>
   </div>`;
 }

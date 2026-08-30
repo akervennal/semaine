@@ -128,12 +128,6 @@ main{padding:14px 0 28px}
 .pillrow{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
 .pill{border:1px solid var(--line);background:var(--card);border-radius:999px;padding:6px 12px;font-size:13.5px;color:var(--pencil)}
 .pill.on{background:var(--blue-soft);border-color:var(--blue);color:var(--blue);font-weight:600}
-.sel{flex:0 0 auto;width:22px;height:22px;border-radius:50%;border:1.5px solid var(--pencil)}
-.sel.on{border-color:var(--blue);background:var(--blue);box-shadow:inset 0 0 0 3px var(--card)}
-.selbar{position:fixed;left:0;right:0;bottom:calc(58px + env(safe-area-inset-bottom));z-index:25;padding:8px 16px calc(8px);
-  background:color-mix(in srgb, var(--paper) 90%, transparent);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);border-top:1px solid var(--line)}
-.selbar .wrap{padding:0}
-
 /* ---------- empty ---------- */
 .empty{text-align:center;padding:34px 22px;color:var(--pencil);font-size:15px;line-height:1.5}
 .empty strong{display:block;color:var(--ink);font-size:17px;font-weight:600;margin-bottom:5px}
@@ -177,13 +171,6 @@ label.field .eyebrow{display:block;margin-bottom:6px}
 .step{display:flex;align-items:center;gap:14px}
 .step b{min-width:112px;font-weight:400;color:var(--pencil);font-size:14px}
 .step .pm{width:34px;height:34px;border-radius:50%;border:1px solid var(--line);background:var(--card);display:grid;place-items:center;font-size:19px;color:var(--blue)}
-.slotgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.slotgrid .sl{border:1px solid var(--line);background:var(--card);border-radius:11px;padding:9px 11px;min-height:56px}
-.slotgrid .sl .k{font-size:10.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--pencil)}
-.slotgrid .sl .v{font-size:14px;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.slotgrid .sl .v.free{color:var(--blue)}
-.slotgrid .sl.taken{background:var(--blue-soft);border-color:color-mix(in srgb,var(--blue) 35%,transparent)}
-select.input{-webkit-appearance:none;appearance:none;background-image:linear-gradient(45deg,transparent 50%,var(--pencil) 50%),linear-gradient(135deg,var(--pencil) 50%,transparent 50%);background-position:calc(100% - 17px) 20px,calc(100% - 12px) 20px;background-size:5px 5px,5px 5px;background-repeat:no-repeat;padding-right:34px}
 
 /* ---------- dialog ---------- */
 .dlg-scrim{position:fixed;inset:0;z-index:60;background:rgba(12,14,18,.38);display:grid;place-items:center;padding:24px}

@@ -1,7 +1,7 @@
 // sheets.js — les panneaux qui montent du bas. Meme principe que les vues :
 // des chaines HTML, pilotees par data-act.
 
-import { SLOTS, slotLabel, esc } from "./model.js";
+import { slotLabel, esc } from "./model.js";
 import { state, mealById, slotsUsing } from "./store.js";
 import { ui } from "./uistate.js";
 
@@ -50,7 +50,6 @@ export const SHEETS = {
       </section>
       ${used.length ? `<p class="sub" style="margin:10px 2px">Au planning : ${used.map(u => esc(slotLabel(u))).join(", ")}.</p>` : ""}
       <div class="btn-row" style="margin-top:14px">
-        <button class="btn" data-act="assign" data-id="${m.id}">Ajouter à la semaine</button>
         <button class="btn ghost" data-act="edit-meal" data-id="${m.id}">Modifier</button>
       </div>
       <button class="btn quiet" data-act="del-meal" data-id="${m.id}" style="color:var(--red);margin-top:8px">Supprimer ce repas</button>`;
@@ -77,39 +76,6 @@ export const SHEETS = {
       <div class="btn-row" style="margin-top:18px"><button class="btn" data-act="save-meal">Enregistrer</button></div>`;
 
     return sheetShell(ui.draft.id ? "Modifier le repas" : "Nouveau repas", "", body);
-  },
-
-  /* Placer un repas : grille des 14 creneaux */
-  assign(s) {
-    const m = mealById(s.id);
-    const body = `<div class="slotgrid">${SLOTS.map(id => {
-      const planned = state.week.slots[id];
-      const taken = planned ? mealById(planned.mealId) : null;
-      return `<button class="sl${taken ? " taken" : ""}" data-act="assign-slot" data-id="${s.id}" data-slot="${id}">
-          <span class="k">${esc(slotLabel(id))}</span>
-          <span class="v ${taken ? "" : "free"}">${taken ? esc(taken.name) : "Libre"}</span>
-        </button>`;
-    }).join("")}</div>`;
-    return sheetShell("Placer " + (m ? m.name : "le repas"), "Un créneau occupé sera remplacé", body);
-  },
-
-  /* Placement groupe apres selection multiple */
-  place(s) {
-    const options = SLOTS.map(sid => {
-      const planned = state.week.slots[sid];
-      const taken = planned ? mealById(planned.mealId) : null;
-      return `<option value="${sid}">${esc(slotLabel(sid))}${taken ? " — " + esc(taken.name) : ""}</option>`;
-    }).join("");
-
-    const body = s.ids.map(id => {
-      const m = mealById(id);
-      return `<label class="field"><span class="eyebrow">${esc(m ? m.name : "")}</span>
-        <select class="input" data-place="${id}"><option value="">Ne pas placer maintenant</option>${options}</select></label>`;
-    }).join("")
-      + `<div class="btn-row" style="margin-top:4px"><button class="btn" data-act="place-confirm">Ajouter à ma semaine</button></div>
-         <p class="sub" style="margin:10px 2px 0">Laissez « Ne pas placer » pour garder un créneau libre.</p>`;
-
-    return sheetShell(s.ids.length + " repas choisis", "Où les mettre ?", body);
   }
 };
 

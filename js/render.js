@@ -3,7 +3,6 @@
 // une couche de reconciliation. La position de defilement est preservee.
 
 import { esc } from "./model.js";
-import { state } from "./store.js";
 import { shoppingList, remaining } from "./shopping.js";
 import { ui } from "./uistate.js";
 import { HEADS, VIEWS } from "./views.js";
@@ -16,7 +15,6 @@ export function render() {
   $("#topbar").innerHTML = `<div class="wrap">${HEADS[ui.tab]()}</div>`;
   $("#view").innerHTML = VIEWS[ui.tab]();
   renderTabbar();
-  renderSelbar();
   window.scrollTo(0, y);
 }
 
@@ -35,19 +33,6 @@ export function renderTabbar() {
       <span class="ic" aria-hidden="true">${ic}</span><span class="lb">${lb}</span>
       ${k === "courses" && left ? `<span class="dot"></span>` : ""}
     </button>`).join("");
-}
-
-// Barre flottante du mode selection multiple.
-export function renderSelbar() {
-  const old = $("#selbar");
-  if (old) old.remove();
-  if (ui.tab !== "repas" || !ui.selection || !ui.selection.size) return;
-
-  const el = document.createElement("div");
-  el.className = "selbar";
-  el.id = "selbar";
-  el.innerHTML = `<div class="wrap"><button class="btn" data-act="place-open">Ajouter à ma semaine (${ui.selection.size})</button></div>`;
-  document.body.appendChild(el);
 }
 
 export function renderSheet(animate) {

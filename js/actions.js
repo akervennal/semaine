@@ -36,7 +36,6 @@ async function onClick(e) {
     case "tab":
       if (ui.tab === d.tab) { window.scrollTo({ top: 0, behavior: "smooth" }); return; }
       ui.tab = d.tab;
-      ui.selection = null;
       ui.query = "";
       render();
       window.scrollTo(0, 0);
@@ -164,45 +163,6 @@ async function onClick(e) {
       store.removeMeal(m.id);
       closeSheet();
       render();
-      break;
-    }
-
-    case "assign":
-      openSheet({ type: "assign", id: d.id });
-      break;
-
-    case "assign-slot":
-      store.setSlot(d.slot, d.id);
-      closeSheet();
-      render();
-      toast(slotLabel(d.slot) + " · " + mealById(d.id).name);
-      break;
-
-    /* ---------- selection multiple ---------- */
-    case "select-mode":
-      ui.selection = ui.selection ? null : new Set();
-      render();
-      break;
-
-    case "sel-toggle":
-      if (ui.selection.has(d.id)) ui.selection.delete(d.id);
-      else ui.selection.add(d.id);
-      render();
-      break;
-
-    case "place-open":
-      openSheet({ type: "place", ids: [...ui.selection] });
-      break;
-
-    case "place-confirm": {
-      let n = 0;
-      document.querySelectorAll("[data-place]").forEach(sel => {
-        if (sel.value) { store.setSlot(sel.value, sel.dataset.place); n++; }
-      });
-      ui.selection = null;
-      closeSheet();
-      render();
-      toast(n ? n + " repas placé" + (n > 1 ? "s" : "") : "Aucun créneau choisi");
       break;
     }
 
