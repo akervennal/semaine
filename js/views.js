@@ -120,19 +120,12 @@ export const VIEWS = {
       </section>
 
       <section class="card">
-        <div class="card-head"><span class="eyebrow">Historique</span><span class="d">${h.length} semaine${h.length > 1 ? "s" : ""}</span></div>
-        ${h.length ? h.map(w => `
-          <div class="row" style="align-items:flex-start">
-            <span class="body">
-              <span class="title">Semaine ${esc(weekRange(w.start))}</span>
-              <span class="meta">${esc(w.names.slice(0, 4).join(" · "))}${w.names.length > 4 ? " · +" + (w.names.length - 4) : ""}</span>
-              <span style="display:flex;gap:8px;margin-top:9px">
-                <button class="btn ghost btn-sm" data-act="redo" data-id="${w.id}">Refaire cette semaine</button>
-                <button class="btn quiet btn-sm" data-act="del-hist" data-id="${w.id}" style="color:var(--red)">Supprimer</button>
-              </span>
-            </span>
-          </div>`).join("")
-        : `<div class="empty" style="padding:22px">Les semaines terminées s'empilent ici, pour les refaire d'un geste.</div>`}
+        <div class="card-head"><span class="eyebrow">Historique</span></div>
+        <button class="row" data-act="archive">
+          <span class="body"><span class="title">Archive</span>
+          <span class="meta">${h.length ? h.length + " semaine" + (h.length > 1 ? "s" : "") + " archivée" + (h.length > 1 ? "s" : "") : "Aucune semaine archivée"}</span></span>
+          <span class="chev">›</span>
+        </button>
       </section>
 
       <section class="card">

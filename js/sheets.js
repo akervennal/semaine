@@ -1,7 +1,7 @@
 // sheets.js — les panneaux qui montent du bas. Meme principe que les vues :
 // des chaines HTML, pilotees par data-act.
 
-import { slotLabel, esc } from "./model.js";
+import { DAYS, MOMENTS, slotLabel, weekRange, parseIso, addDays, fmtShort, esc } from "./model.js";
 import { state, mealById, slotsUsing } from "./store.js";
 import { ui } from "./uistate.js";
 
@@ -76,6 +76,58 @@ export const SHEETS = {
       <div class="btn-row" style="margin-top:18px"><button class="btn" data-act="save-meal">Enregistrer</button></div>`;
 
     return sheetShell(ui.draft.id ? "Modifier le repas" : "Nouveau repas", "", body);
+  },
+
+  /* Liste des semaines archivees */
+  archive() {
+    const h = state.history;
+    const body = h.length
+      ? `<section class="card">${h.map(w => `
+          <button class="row" data-act="hist-week" data-id="${w.id}">
+            <span class="body">
+              <span class="title">Semaine ${esc(weekRange(w.start))}</span>
+              <span class="meta">${esc(w.names.slice(0, 4).join(" · "))}${w.names.length > 4 ? " · +" + (w.names.length - 4) : ""}</span>
+            </span>
+            <span class="chev">›</span>
+          </button>`).join("")}</section>`
+      : `<div class="card"><div class="empty">Les semaines terminées s'empilent ici, pour les revoir ou les refaire.</div></div>`;
+
+    return sheetShell("Archive", h.length ? h.length + " semaine" + (h.length > 1 ? "s" : "") : "", body);
+  },
+
+  /* Detail d'une semaine archivee, jour par jour */
+  hist(s) {
+    const w = state.history.find(x => x.id === s.id);
+    if (!w) return sheetShell("Semaine introuvable", "", "");
+
+    const start = parseIso(w.start);
+    const days = DAYS.map((d, i) => {
+      const date = addDays(start, i);
+      const rows = MOMENTS.map(m => {
+        const id = d.k + "-" + m.k;
+        const planned = w.slots[id];
+        const meal = planned ? mealById(planned.mealId) : null;
+        const title = !planned ? "Libre" : (meal ? esc(meal.name) : "(repas supprimé)");
+        return `<div class="row">
+          <span class="slot">${esc(m.n)}</span>
+          <span class="body">
+            <span class="title${meal ? "" : " empty"}">${title}</span>
+            ${meal && planned.people ? `<span class="meta">Pour ${planned.people} personne${planned.people > 1 ? "s" : ""}</span>` : ""}
+          </span>
+        </div>`;
+      }).join("");
+      return `<section class="card">
+        <div class="card-head"><span class="eyebrow">${esc(d.n)}</span><span class="d">${esc(fmtShort(date))}</span></div>
+        ${rows}
+      </section>`;
+    }).join("");
+
+    const body = days + `
+      <div class="btn-row" style="margin-top:14px"><button class="btn" data-act="redo" data-id="${w.id}">Refaire cette semaine</button></div>
+      <button class="btn quiet" data-act="del-hist" data-id="${w.id}" style="color:var(--red);margin-top:8px">Supprimer cette archive</button>`;
+
+    return sheetShell("Semaine " + weekRange(w.start), "", body,
+      `<button class="x" data-act="archive" aria-label="Retour à l'archive">‹</button>`);
   }
 };
 

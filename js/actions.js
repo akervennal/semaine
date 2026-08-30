@@ -193,6 +193,14 @@ async function onClick(e) {
       break;
     }
 
+    case "archive":
+      openSheet({ type: "archive" });
+      break;
+
+    case "hist-week":
+      openSheet({ type: "hist", id: d.id });
+      break;
+
     case "redo": {
       if (store.plannedCount()) {
         const ok = await ask({
@@ -204,6 +212,7 @@ async function onClick(e) {
       }
       store.redoWeek(d.id);
       ui.tab = "semaine";
+      closeSheet();
       render();
       window.scrollTo(0, 0);
       toast("Semaine reprise");
@@ -212,6 +221,7 @@ async function onClick(e) {
 
     case "del-hist":
       store.removeHistory(d.id);
+      if (ui.sheet && ui.sheet.type === "hist") openSheet({ type: "archive" });
       render();
       break;
 
