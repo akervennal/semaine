@@ -1,0 +1,10 @@
+// uistate.js — etat d'affichage, non persiste. Volontairement isole du store
+// pour eviter les imports circulaires entre les vues et le moteur de rendu.
+
+export const ui = {
+  tab: "semaine",     // semaine | repas | courses | plus
+  query: "",          // recherche dans la bibliotheque
+  selection: null,    // Set d'ids en mode selection multiple, null sinon
+  sheet: null,        // { type, ...params } de la feuille ouverte
+  draft: null         // repas en cours d'edition { id|null, name, ingredients[] }
+};

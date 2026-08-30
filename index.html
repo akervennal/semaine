@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Semaine — repas et courses</title>
+
+<meta name="description" content="Planifiez les repas de la semaine et obtenez la liste de courses, avec le jour et le plat de chaque ingrédient.">
+<meta name="theme-color" content="#F7F6F2" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#121417" media="(prefers-color-scheme: dark)">
+<meta name="format-detection" content="telephone=no">
+
+<!-- iOS : mode plein écran depuis l'écran d'accueil -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Semaine">
+<link rel="apple-touch-icon" href="icons/icon-180.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<link rel="manifest" href="manifest.webmanifest">
+
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+<header class="topbar" id="topbar"></header>
+
+<main><div class="wrap" id="view"></div></main>
+
+<nav class="tabbar" id="tabbar" aria-label="Sections"></nav>
+
+<div class="scrim" id="scrim"></div>
+<section class="sheet" id="sheet" role="dialog" aria-modal="true" aria-label="Panneau"></section>
+<div id="dialog"></div>
+<div id="toast" aria-live="polite"></div>
+
+<script type="module" src="js/app.js"></script>
+</body>
+</html>
