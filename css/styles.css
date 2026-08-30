@@ -165,6 +165,8 @@ label.field{display:block;margin-bottom:14px}
 label.field .eyebrow{display:block;margin-bottom:6px}
 .input{width:100%;height:var(--tap);padding:0 13px;border:1px solid var(--line);border-radius:11px;background:var(--card);outline:none}
 .input:focus{border-color:var(--blue);box-shadow:0 0 0 3px var(--blue-soft)}
+/* Safari iOS ignore width:100% sur input[type=date] et deborde du cadre sans ceci. */
+input[type="date"].input{min-width:0;-webkit-appearance:none;appearance:none}
 .ing{display:flex;align-items:center;gap:8px;margin-bottom:8px}
 .ing .input{flex:1}
 .ing .del{flex:0 0 auto;width:34px;height:34px;border-radius:9px;display:grid;place-items:center;color:var(--red);font-size:19px}
