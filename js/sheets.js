@@ -126,14 +126,40 @@ export function pickerHtml(slot, label) {
   const favs = meals.filter(m => m.fav);
   const rest = meals.filter(m => !m.fav);
 
-  const rows = arr => arr.map(m => `<button class="row" data-act="pick" data-slot="${slot}" data-id="${m.id}">
-      <span class="body"><span class="title">${m.fav ? "★ " : ""}${esc(m.name)}</span>
-      <span class="meta">${esc((m.ingredients || []).slice(0, 4).join(", "))}</span></span>
-      <span class="chev">＋</span></button>`).join("");
+  const rows = arr => arr.map(m => pickRow(slot, m)).join("");
 
   return `${label ? `<p class="eyebrow" style="margin:16px 2px 8px">${label}</p>` : ""}
     ${favs.length ? `<section class="card"><div class="card-head"><span class="eyebrow">Favoris</span></div>${rows(favs)}</section>` : ""}
     ${rest.length ? `<section class="card"><div class="card-head"><span class="eyebrow">${favs.length ? "Tous les repas" : "Bibliothèque"}</span></div>${rows(rest)}</section>` : ""}`;
+}
+
+// Une ligne du choix de repas : repliee (nom + ingredients), ou depliee sur place
+// pour regler le nombre de personnes avant de confirmer l'ajout au creneau.
+function pickRow(slot, m) {
+  const open = ui.pick && ui.pick.slot === slot && ui.pick.mealId === m.id;
+
+  if (!open) {
+    return `<button class="row" data-act="pick-expand" data-slot="${slot}" data-id="${m.id}">
+      <span class="body"><span class="title">${m.fav ? "★ " : ""}${esc(m.name)}</span>
+      <span class="meta">${esc((m.ingredients || []).slice(0, 4).join(", "))}</span></span>
+      <span class="chev">＋</span></button>`;
+  }
+
+  const people = ui.pick.people;
+  return `<div class="row-expanded">
+      <button class="row" data-act="pick-expand" data-slot="${slot}" data-id="${m.id}">
+        <span class="body"><span class="title">${m.fav ? "★ " : ""}${esc(m.name)}</span></span>
+        <span class="chev">︿</span>
+      </button>
+      <div class="step" style="padding:8px 14px 0">
+        <b>${people ? "Pour " + people + " personne" + (people > 1 ? "s" : "") : "Nombre de personnes"}</b>
+        <button class="pm" data-act="pick-people" data-d="-1" aria-label="Moins">−</button>
+        <button class="pm" data-act="pick-people" data-d="1" aria-label="Plus">+</button>
+      </div>
+      <div style="padding:12px 14px 14px">
+        <button class="btn" data-act="pick-confirm" data-slot="${slot}" data-id="${m.id}">Ajouter</button>
+      </div>
+    </div>`;
 }
 
 export function sheetShell(title, sub, body, extra) {

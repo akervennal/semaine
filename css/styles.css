@@ -78,6 +78,10 @@ main{padding:14px 0 28px}
 .row .meta{font-size:12px;color:var(--pencil);margin-top:1px}
 .chev{flex:0 0 auto;color:var(--pencil);opacity:.55}
 .row:active{background:var(--blue-soft)}
+.row-expanded{border-top:1px solid var(--line)}
+.row-expanded:first-child{border-top:0}
+.row-expanded+.row{border-top:1px solid var(--line)}
+.row-expanded .row{padding-bottom:0}
 
 /* ---------- buttons ---------- */
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:var(--tap);padding:0 18px;border-radius:11px;background:var(--blue);color:#fff;font-weight:600;font-size:16px;letter-spacing:-.01em;width:100%}

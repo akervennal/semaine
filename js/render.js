@@ -79,6 +79,7 @@ export function openSheet(sheet) {
 export function closeSheet() {
   ui.sheet = null;
   ui.draft = null;
+  ui.pick = null;
   renderSheet();
 }
 

@@ -48,11 +48,34 @@ async function onClick(e) {
 
     /* ---------- semaine ---------- */
     case "slot":
+      ui.pick = null;
       openSheet({ type: "slot", slot: d.slot });
       break;
 
-    case "pick":
+    case "pick-expand": {
+      const already = ui.pick && ui.pick.slot === d.slot && ui.pick.mealId === d.id;
+      if (already) {
+        ui.pick = null;
+      } else {
+        const planned = state.week.slots[d.slot];
+        const people = planned && planned.mealId === d.id ? (planned.people || 0) : 0;
+        ui.pick = { slot: d.slot, mealId: d.id, people };
+      }
+      renderSheet();
+      break;
+    }
+
+    case "pick-people":
+      if (ui.pick) {
+        ui.pick.people = Math.max(0, Math.min(20, ui.pick.people + Number(d.d)));
+        renderSheet();
+      }
+      break;
+
+    case "pick-confirm":
       store.setSlot(d.slot, d.id);
+      store.setPeople(d.slot, ui.pick ? ui.pick.people : 0);
+      ui.pick = null;
       renderSheet();
       render();
       toast(mealById(d.id).name + " · " + slotLabel(d.slot));
@@ -150,6 +173,7 @@ async function onClick(e) {
 
     case "assign-slot":
       store.setSlot(d.slot, d.id);
+      ui.pick = null;
       openSheet({ type: "slot", slot: d.slot });
       render();
       toast(slotLabel(d.slot) + " · " + mealById(d.id).name);

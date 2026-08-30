@@ -6,5 +6,6 @@ export const ui = {
   query: "",          // recherche dans la bibliotheque
   selection: null,    // Set d'ids en mode selection multiple, null sinon
   sheet: null,        // { type, ...params } de la feuille ouverte
-  draft: null         // repas en cours d'edition { id|null, name, ingredients[] }
+  draft: null,        // repas en cours d'edition { id|null, name, ingredients[] }
+  pick: null          // ligne depliee dans le choix d'un repas { slot, mealId, people }
 };

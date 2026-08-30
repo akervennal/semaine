@@ -122,6 +122,16 @@ export function bumpPeople(slot, delta) {
   save();
 }
 
+// Fixe le nombre de personnes a une valeur absolue (choix fait avant l'ajout au creneau).
+export function setPeople(slot, people) {
+  const p = state.week.slots[slot];
+  if (!p) return;
+  const v = Math.max(0, Math.min(20, people || 0));
+  if (v) p.people = v;
+  else delete p.people;
+  save();
+}
+
 export function setWeekStart(dateIso) {
   state.week.start = iso(mondayOf(new Date(dateIso + "T12:00:00")));
   save();
