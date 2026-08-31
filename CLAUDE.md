@@ -27,7 +27,9 @@ d'usage prime sur la richesse fonctionnelle.
    champ quantité, d'unité ni de calcul de portions.
 2. **Un repas et un repas planifié sont deux choses différentes.** La bibliothèque
    contient des repas ; la semaine contient des occurrences `{ mealId, people? }`.
-   Placer Carbonara lundi soir et jeudi soir ne duplique pas la recette.
+   Placer Carbonara lundi soir et jeudi soir ne duplique pas la recette. Un créneau
+   contient une **liste** d'occurrences (`state.week.slots[slot]` est un tableau) :
+   plusieurs repas peuvent partager le même jour/moment (plat + dessert, par exemple).
 3. **La liste de courses est dérivée, jamais stockée.** Elle est recalculée depuis la
    semaine (`shopping.js`). Seul l'état des cases cochées est persisté.
 4. **Chaque ingrédient garde son contexte.** Une ligne par ingrédient, avec la liste

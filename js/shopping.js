@@ -13,23 +13,24 @@ export function shoppingList() {
   const map = new Map();
 
   // On parcourt les creneaux dans l'ordre de la semaine : les contextes
-  // apparaissent donc de lundi a dimanche sous chaque ingredient.
+  // apparaissent donc de lundi a dimanche sous chaque ingredient. Un creneau
+  // peut contenir plusieurs repas (plat + dessert, par exemple).
   SLOTS.forEach(sid => {
-    const planned = state.week.slots[sid];
-    if (!planned) return;
-    const meal = mealById(planned.mealId);
-    if (!meal) return;
+    (state.week.slots[sid] || []).forEach(planned => {
+      const meal = mealById(planned.mealId);
+      if (!meal) return;
 
-    (meal.ingredients || []).forEach(raw => {
-      const name = String(raw).trim();
-      const key = normKey(name);
-      if (!key) return;
-      if (!map.has(key)) map.set(key, { key, name: cap(name), ctx: [] });
+      (meal.ingredients || []).forEach(raw => {
+        const name = String(raw).trim();
+        const key = normKey(name);
+        if (!key) return;
+        if (!map.has(key)) map.set(key, { key, name: cap(name), ctx: [] });
 
-      const line = slotLabel(sid) + " · " + meal.name + (planned.people ? " (" + planned.people + " pers.)" : "");
-      const entry = map.get(key);
-      // Deux fois le meme plat le meme soir ne doit pas doubler la ligne de contexte.
-      if (!entry.ctx.includes(line)) entry.ctx.push(line);
+        const line = slotLabel(sid) + " · " + meal.name + (planned.people ? " (" + planned.people + " pers.)" : "");
+        const entry = map.get(key);
+        // Deux fois le meme plat le meme soir ne doit pas doubler la ligne de contexte.
+        if (!entry.ctx.includes(line)) entry.ctx.push(line);
+      });
     });
   });
 

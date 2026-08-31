@@ -53,13 +53,7 @@ async function onClick(e) {
 
     case "pick-expand": {
       const already = ui.pick && ui.pick.slot === d.slot && ui.pick.mealId === d.id;
-      if (already) {
-        ui.pick = null;
-      } else {
-        const planned = state.week.slots[d.slot];
-        const people = planned && planned.mealId === d.id ? (planned.people || 0) : 0;
-        ui.pick = { slot: d.slot, mealId: d.id, people };
-      }
+      ui.pick = already ? null : { slot: d.slot, mealId: d.id, people: 0 };
       renderSheet();
       break;
     }
@@ -72,22 +66,21 @@ async function onClick(e) {
       break;
 
     case "pick-confirm":
-      store.setSlot(d.slot, d.id);
-      store.setPeople(d.slot, ui.pick ? ui.pick.people : 0);
+      store.addToSlot(d.slot, d.id, ui.pick ? ui.pick.people : 0);
       ui.pick = null;
-      closeSheet();
+      renderSheet();
       render();
       toast(mealById(d.id).name + " · " + slotLabel(d.slot));
       break;
 
-    case "clear-slot":
-      store.clearSlot(d.slot);
-      closeSheet();
+    case "remove-from-slot":
+      store.removeFromSlot(d.slot, Number(d.i));
+      renderSheet();
       render();
       break;
 
     case "people":
-      store.bumpPeople(d.slot, Number(d.d));
+      store.bumpPeopleAt(d.slot, Number(d.i), Number(d.d));
       renderSheet();
       render();
       break;
@@ -334,9 +327,13 @@ function importFile() {
         if (!d || !Array.isArray(d.meals)) throw new Error("format");
         store.replaceState({
           meals: d.meals,
-          week: d.week && d.week.start ? d.week : store.emptyWeek(),
+          week: d.week && d.week.start
+            ? { start: d.week.start, slots: store.migrateSlots(d.week.slots) }
+            : store.emptyWeek(),
           checked: d.checked || {},
-          history: d.history || []
+          history: Array.isArray(d.history)
+            ? d.history.map(w => Object.assign({}, w, { slots: store.migrateSlots(w.slots) }))
+            : []
         });
         render();
         toast("Fichier importé");

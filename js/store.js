@@ -4,8 +4,9 @@
 // Modele :
 //   meal    = { id, name, ingredients: [string], fav: bool }   -> bibliotheque permanente
 //   planned = { mealId, people? }                              -> une occurrence dans un creneau
-// Ces deux notions restent separees : un meme repas peut occuper plusieurs creneaux
-// sans etre duplique dans la bibliotheque.
+// Un creneau contient une LISTE de planned : plusieurs repas peuvent partager le
+// meme jour/moment (ex. plat + dessert). La bibliotheque reste independante :
+// un meme repas peut occuper plusieurs creneaux sans y etre duplique.
 
 import { SLOTS, iso, uid, normKey } from "./model.js";
 
@@ -27,6 +28,18 @@ export const canPersist = () => canStore;
 export const emptyWeek = startIso => ({ start: startIso || iso(new Date()), slots: {} });
 export const blank = () => ({ meals: [], week: emptyWeek(), checked: {}, history: [] });
 
+// Anciennes donnees : un creneau contenait un objet planned unique, pas une liste.
+// On enveloppe au chargement pour ne rien perdre de ce qui etait deja planifie ou archive.
+export function migrateSlots(raw) {
+  const out = {};
+  Object.keys(raw || {}).forEach(k => {
+    const v = raw[k];
+    const arr = Array.isArray(v) ? v : (v && v.mealId ? [v] : []);
+    if (arr.length) out[k] = arr;
+  });
+  return out;
+}
+
 function read() {
   let raw = null;
   try {
@@ -39,9 +52,11 @@ function read() {
     const d = JSON.parse(raw);
     return {
       meals: Array.isArray(d.meals) ? d.meals : [],
-      week: d.week && d.week.start ? { start: d.week.start, slots: d.week.slots || {} } : emptyWeek(),
+      week: d.week && d.week.start ? { start: d.week.start, slots: migrateSlots(d.week.slots) } : emptyWeek(),
       checked: d.checked || {},
-      history: Array.isArray(d.history) ? d.history : []
+      history: Array.isArray(d.history)
+        ? d.history.map(w => Object.assign({}, w, { slots: migrateSlots(w.slots) }))
+        : []
     };
   } catch (e) {
     return blank();
@@ -72,8 +87,8 @@ export function replaceState(next) {
 /* ---------- lectures ---------- */
 
 export const mealById = id => state.meals.find(m => m.id === id);
-export const plannedCount = () => Object.keys(state.week.slots).length;
-export const slotsUsing = mealId => SLOTS.filter(s => state.week.slots[s] && state.week.slots[s].mealId === mealId);
+export const plannedCount = () => SLOTS.reduce((n, s) => n + (state.week.slots[s] ? state.week.slots[s].length : 0), 0);
+export const slotsUsing = mealId => SLOTS.filter(s => (state.week.slots[s] || []).some(p => p.mealId === mealId));
 
 /* ---------- bibliotheque ---------- */
 
@@ -89,10 +104,15 @@ export function updateMeal(id, name, ingredients) {
   save();
 }
 
-// Supprimer un repas vide aussi les creneaux qui l'utilisaient : un planning
-// ne doit jamais pointer vers un repas inexistant.
+// Supprimer un repas retire aussi ses occurrences des creneaux : un planning
+// ne doit jamais pointer vers un repas inexistant. Les autres repas du meme
+// creneau restent en place.
 export function removeMeal(id) {
-  slotsUsing(id).forEach(s => delete state.week.slots[s]);
+  slotsUsing(id).forEach(s => {
+    const arr = state.week.slots[s].filter(p => p.mealId !== id);
+    if (arr.length) state.week.slots[s] = arr;
+    else delete state.week.slots[s];
+  });
   state.meals = state.meals.filter(m => m.id !== id);
   save();
 }
@@ -105,32 +125,32 @@ export function toggleFav(id) {
 
 /* ---------- semaine ---------- */
 
-export function setSlot(slot, mealId) {
-  state.week.slots[slot] = Object.assign({}, state.week.slots[slot], { mealId });
+// Ajoute un repas au creneau, sans toucher a ceux deja presents.
+export function addToSlot(slot, mealId, people) {
+  if (!state.week.slots[slot]) state.week.slots[slot] = [];
+  const item = { mealId };
+  const v = Math.max(0, Math.min(20, people || 0));
+  if (v) item.people = v;
+  state.week.slots[slot].push(item);
   save();
 }
 
-export function clearSlot(slot) {
-  delete state.week.slots[slot];
+// Retire un seul repas du creneau (par sa position), pas les autres.
+export function removeFromSlot(slot, index) {
+  const arr = state.week.slots[slot];
+  if (!arr) return;
+  arr.splice(index, 1);
+  if (!arr.length) delete state.week.slots[slot];
   save();
 }
 
 // Information de contexte uniquement : ne sert jamais a calculer des quantites.
-export function bumpPeople(slot, delta) {
-  const p = state.week.slots[slot];
+export function bumpPeopleAt(slot, index, delta) {
+  const arr = state.week.slots[slot];
+  const p = arr && arr[index];
   if (!p) return;
   p.people = Math.max(0, Math.min(20, (p.people || 0) + delta));
   if (!p.people) delete p.people;
-  save();
-}
-
-// Fixe le nombre de personnes a une valeur absolue (choix fait avant l'ajout au creneau).
-export function setPeople(slot, people) {
-  const p = state.week.slots[slot];
-  if (!p) return;
-  const v = Math.max(0, Math.min(20, people || 0));
-  if (v) p.people = v;
-  else delete p.people;
   save();
 }
 
@@ -156,8 +176,7 @@ export function resetChecked() {
 export function endWeek() {
   if (plannedCount()) {
     const names = [...new Set(
-      SLOTS.filter(s => state.week.slots[s])
-        .map(s => (mealById(state.week.slots[s].mealId) || {}).name)
+      SLOTS.flatMap(s => (state.week.slots[s] || []).map(p => (mealById(p.mealId) || {}).name))
         .filter(Boolean)
     )];
     state.history.unshift({
@@ -182,7 +201,8 @@ export function redoWeek(historyId) {
   if (!w) return;
   const slots = {};
   Object.keys(w.slots).forEach(s => {
-    if (mealById(w.slots[s].mealId)) slots[s] = Object.assign({}, w.slots[s]);
+    const arr = w.slots[s].filter(p => mealById(p.mealId)).map(p => Object.assign({}, p));
+    if (arr.length) slots[s] = arr;
   });
   state.week.slots = slots;
   state.checked = {};

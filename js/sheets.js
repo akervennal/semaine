@@ -7,32 +7,34 @@ import { ui } from "./uistate.js";
 
 export const SHEETS = {
 
-  /* Choisir, remplacer ou vider le repas d'un creneau */
+  /* Composer un creneau : plusieurs repas possibles, chacun retirable independamment */
   slot(s) {
-    const planned = state.week.slots[s.slot];
-    const meal = planned ? mealById(planned.mealId) : null;
-    const people = planned && planned.people ? planned.people : 0;
+    const arr = state.week.slots[s.slot] || [];
     let body = "";
 
-    if (meal) {
+    if (arr.length) {
       body += `<section class="card">
         <div class="card-head"><span class="eyebrow">Au menu</span></div>
-        <div style="padding:13px 14px">
-          <div style="font-size:19px;font-weight:700;letter-spacing:-.02em">${esc(meal.name)}</div>
-          <div class="sub" style="margin-top:4px">${esc((meal.ingredients || []).join(" · ")) || "Aucun ingrédient"}</div>
-          <div class="step" style="margin-top:14px">
-            <b>${people ? "Pour " + people + " personne" + (people > 1 ? "s" : "") : "Nombre de personnes"}</b>
-            <button class="pm" data-act="people" data-slot="${s.slot}" data-d="-1" aria-label="Moins">−</button>
-            <button class="pm" data-act="people" data-slot="${s.slot}" data-d="1" aria-label="Plus">+</button>
-          </div>
-          <div class="btn-row" style="margin-top:14px">
-            <button class="btn danger" data-act="clear-slot" data-slot="${s.slot}">Retirer</button>
-          </div>
-        </div></section>`;
+        ${arr.map((planned, i) => {
+          const meal = mealById(planned.mealId);
+          return `<div style="padding:13px 14px${i ? ";border-top:1px solid var(--line)" : ""}">
+            <div style="font-size:19px;font-weight:700;letter-spacing:-.02em">${esc(meal.name)}</div>
+            <div class="sub" style="margin-top:4px">${esc((meal.ingredients || []).join(" · ")) || "Aucun ingrédient"}</div>
+            <div class="step" style="margin-top:14px">
+              <b>${planned.people ? "Pour " + planned.people + " personne" + (planned.people > 1 ? "s" : "") : "Nombre de personnes"}</b>
+              <button class="pm" data-act="people" data-slot="${s.slot}" data-i="${i}" data-d="-1" aria-label="Moins">−</button>
+              <button class="pm" data-act="people" data-slot="${s.slot}" data-i="${i}" data-d="1" aria-label="Plus">+</button>
+            </div>
+            <div class="btn-row" style="margin-top:14px">
+              <button class="btn danger" data-act="remove-from-slot" data-slot="${s.slot}" data-i="${i}">Retirer</button>
+            </div>
+          </div>`;
+        }).join("")}
+      </section>`;
     }
 
-    body += pickerHtml(s.slot, meal ? "Remplacer par" : "");
-    return sheetShell(slotLabel(s.slot), meal ? "" : "Choisissez un repas dans la bibliothèque", body);
+    body += pickerHtml(s.slot, arr.length ? "Ajouter un autre repas" : "");
+    return sheetShell(slotLabel(s.slot), arr.length ? "" : "Choisissez un repas dans la bibliothèque", body);
   },
 
   /* Detail d'un repas de la bibliotheque */
@@ -105,14 +107,15 @@ export const SHEETS = {
       const date = addDays(start, i);
       const rows = MOMENTS.map(m => {
         const id = d.k + "-" + m.k;
-        const planned = w.slots[id];
-        const meal = planned ? mealById(planned.mealId) : null;
-        const title = !planned ? "Libre" : (meal ? esc(meal.name) : "(repas supprimé)");
+        const items = w.slots[id] || [];
+        const names = items.map(p => {
+          const meal = mealById(p.mealId);
+          return meal ? esc(meal.name) + (p.people ? " (" + p.people + " pers.)" : "") : "(repas supprimé)";
+        });
         return `<div class="row">
           <span class="slot">${esc(m.n)}</span>
           <span class="body">
-            <span class="title${meal ? "" : " empty"}">${title}</span>
-            ${meal && planned.people ? `<span class="meta">Pour ${planned.people} personne${planned.people > 1 ? "s" : ""}</span>` : ""}
+            <span class="title${names.length ? "" : " empty"}">${names.length ? names.join(" · ") : "Libre"}</span>
           </span>
         </div>`;
       }).join("");

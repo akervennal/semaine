@@ -47,13 +47,14 @@ export const VIEWS = {
         <div class="card-head"><span class="eyebrow">${esc(d.n)}</span><span class="d">${esc(fmtShort(date))}</span></div>
         ${MOMENTS.map(m => {
           const id = d.k + "-" + m.k;
-          const planned = state.week.slots[id];
-          const meal = planned ? mealById(planned.mealId) : null;
+          const names = (state.week.slots[id] || []).map(p => {
+            const meal = mealById(p.mealId);
+            return meal ? esc(meal.name) + (p.people ? " (" + p.people + " pers.)" : "") : "";
+          }).filter(Boolean);
           return `<button class="row" data-act="slot" data-slot="${id}">
             <span class="slot">${esc(m.n)}</span>
             <span class="body">
-              <span class="title${meal ? "" : " empty"}">${meal ? esc(meal.name) : "Ajouter un repas"}</span>
-              ${meal && planned.people ? `<span class="meta">Pour ${planned.people} personne${planned.people > 1 ? "s" : ""}</span>` : ""}
+              <span class="title${names.length ? "" : " empty"}">${names.length ? names.join(" · ") : "Ajouter un repas"}</span>
             </span>
             <span class="chev">›</span>
           </button>`;
