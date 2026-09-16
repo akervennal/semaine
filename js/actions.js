@@ -55,7 +55,8 @@ async function onClick(e) {
 
     case "pick-expand": {
       const already = ui.pick && ui.pick.slot === d.slot && ui.pick.mealId === d.id;
-      ui.pick = already ? null : { slot: d.slot, mealId: d.id, people: 0, opened: false };
+      if (already) { closeRevealThen(el, () => { ui.pick = null; renderSheet(); }); break; }
+      ui.pick = { slot: d.slot, mealId: d.id, people: 0, opened: false };
       renderSheet();
       break;
     }
@@ -68,12 +69,15 @@ async function onClick(e) {
       break;
 
     case "pick-confirm":
-      store.addToSlot(d.slot, d.id, ui.pick ? ui.pick.people : 0);
-      ui.pick = null;
-      ui.pickQuery = "";
-      renderSheet();
-      render();
-      toast(mealById(d.id).name + " · " + slotLabel(d.slot));
+      closeRevealThen(el, () => {
+        store.addToSlot(d.slot, d.id, ui.pick ? ui.pick.people : 0);
+        ui.justAdded = { slot: d.slot, index: (state.week.slots[d.slot] || []).length - 1 };
+        ui.pick = null;
+        ui.pickQuery = "";
+        renderSheet();
+        render();
+        toast(mealById(d.id).name + " · " + slotLabel(d.slot));
+      });
       break;
 
     case "remove-from-slot":
@@ -245,6 +249,18 @@ async function onClick(e) {
       break;
     }
   }
+}
+
+// Replie la ligne de repas depliee (animation inverse de sheets.js) avant
+// d'appliquer le changement d'etat, pour ne pas la faire disparaitre d'un coup.
+function closeRevealThen(el, cb) {
+  const reveal = el.closest(".row-expanded")?.querySelector(".reveal.open");
+  if (!reveal) { cb(); return; }
+  reveal.classList.remove("open");
+  let done = false;
+  const finish = () => { if (done) return; done = true; cb(); };
+  reveal.addEventListener("transitionend", finish, { once: true });
+  setTimeout(finish, 260);
 }
 
 /* ---------- saisie ---------- */

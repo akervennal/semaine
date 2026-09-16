@@ -17,7 +17,8 @@ export const SHEETS = {
         <div class="card-head"><span class="eyebrow">Au menu</span></div>
         ${arr.map((planned, i) => {
           const meal = mealById(planned.mealId);
-          return `<div style="padding:13px 14px${i ? ";border-top:1px solid var(--line)" : ""}">
+          const justAdded = ui.justAdded && ui.justAdded.slot === s.slot && ui.justAdded.index === i;
+          return `<div class="menu-item${justAdded ? " enter" : ""}" style="padding:13px 14px${i ? ";border-top:1px solid var(--line)" : ""}">
             <div style="font-size:19px;font-weight:700;letter-spacing:-.02em">${esc(meal.name)}</div>
             <div class="sub" style="margin-top:4px">${esc((meal.ingredients || []).join(" · ")) || "Aucun ingrédient"}</div>
             <div class="step" style="margin-top:14px">

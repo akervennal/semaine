@@ -71,6 +71,14 @@ export function renderSheet(animate) {
     if (reveal) requestAnimationFrame(() => reveal.classList.add("open"));
     ui.pick.opened = true;
   }
+
+  // Le repas tout juste ajoute demarre translucide/decale (voir sheets.js) :
+  // on le laisse s'installer en douceur plutot que d'apparaitre d'un coup.
+  if (ui.justAdded) {
+    const item = root.querySelector(".menu-item.enter");
+    if (item) requestAnimationFrame(() => item.classList.remove("enter"));
+    ui.justAdded = null;
+  }
 }
 
 export function openSheet(sheet) {

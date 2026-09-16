@@ -7,5 +7,6 @@ export const ui = {
   sheet: null,        // { type, ...params } de la feuille ouverte
   draft: null,        // repas en cours d'edition { id|null, name, ingredients[] }
   pick: null,         // ligne depliee dans le choix d'un repas { slot, mealId, people, opened }
-  pickQuery: ""       // recherche dans le choix d'un repas (feuille de creneau)
+  pickQuery: "",      // recherche dans le choix d'un repas (feuille de creneau)
+  justAdded: null     // { slot, index } du repas tout juste ajoute, pour l'animer a l'affichage
 };
