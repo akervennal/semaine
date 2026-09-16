@@ -82,6 +82,8 @@ main{padding:14px 0 28px}
 .row-expanded:first-child{border-top:0}
 .row-expanded+.row{border-top:1px solid var(--line)}
 .row-expanded .row{padding-bottom:0}
+.reveal{max-height:0;opacity:0;overflow:hidden;transition:max-height .24s ease,opacity .18s ease}
+.reveal.open{max-height:160px;opacity:1}
 
 /* ---------- buttons ---------- */
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:var(--tap);padding:0 18px;border-radius:11px;background:var(--blue);color:#fff;font-weight:600;font-size:16px;letter-spacing:-.01em;width:100%}

@@ -1,7 +1,7 @@
 // sheets.js — les panneaux qui montent du bas. Meme principe que les vues :
 // des chaines HTML, pilotees par data-act.
 
-import { MOMENTS, slotLabel, orderedDays, weekRange, parseIso, addDays, fmtShort, esc } from "./model.js";
+import { MOMENTS, slotLabel, orderedDays, weekRange, parseIso, addDays, fmtShort, esc, normKey } from "./model.js";
 import { state, mealById, slotsUsing } from "./store.js";
 import { ui } from "./uistate.js";
 
@@ -143,14 +143,30 @@ export function pickerHtml(slot, label) {
       Créez d'abord un repas dans l'onglet Repas.</div></div>`;
   }
 
-  const meals = state.meals.slice().sort((a, b) => (b.fav ? 1 : 0) - (a.fav ? 1 : 0) || a.name.localeCompare(b.name, "fr"));
+  return `${label ? `<p class="eyebrow" style="margin:16px 2px 8px">${label}</p>` : ""}
+    <div class="search">
+      <span style="color:var(--pencil);font-size:14px" aria-hidden="true">⌕</span>
+      <input id="pickq" data-slot="${slot}" type="search" placeholder="Rechercher un repas"
+             value="${esc(ui.pickQuery)}" autocomplete="off" autocapitalize="off" aria-label="Rechercher un repas">
+    </div>
+    <div id="picker-rows">${pickerRows(slot)}</div>`;
+}
+
+// Rendu isole des lignes du picker, pour pouvoir les rafraichir seules
+// pendant la frappe dans la recherche (sinon le champ perdrait le focus).
+export function pickerRows(slot) {
+  const q = normKey(ui.pickQuery);
+  const meals = state.meals
+    .filter(m => !q || normKey(m.name).includes(q) || (m.ingredients || []).some(x => normKey(x).includes(q)))
+    .sort((a, b) => (b.fav ? 1 : 0) - (a.fav ? 1 : 0) || a.name.localeCompare(b.name, "fr"));
+
+  if (!meals.length) return `<div class="card"><div class="empty">Aucun repas ne correspond à « ${esc(ui.pickQuery)} ».</div></div>`;
+
   const favs = meals.filter(m => m.fav);
   const rest = meals.filter(m => !m.fav);
-
   const rows = arr => arr.map(m => pickRow(slot, m)).join("");
 
-  return `${label ? `<p class="eyebrow" style="margin:16px 2px 8px">${label}</p>` : ""}
-    ${favs.length ? `<section class="card"><div class="card-head"><span class="eyebrow">Favoris</span></div>${rows(favs)}</section>` : ""}
+  return `${favs.length ? `<section class="card"><div class="card-head"><span class="eyebrow">Favoris</span></div>${rows(favs)}</section>` : ""}
     ${rest.length ? `<section class="card"><div class="card-head"><span class="eyebrow">${favs.length ? "Tous les repas" : "Bibliothèque"}</span></div>${rows(rest)}</section>` : ""}`;
 }
 
@@ -172,13 +188,15 @@ function pickRow(slot, m) {
         <span class="body"><span class="title">${m.fav ? "★ " : ""}${esc(m.name)}</span></span>
         <span class="chev">︿</span>
       </button>
-      <div class="step" style="padding:8px 14px 0">
-        <b>${people ? "Pour " + people + " personne" + (people > 1 ? "s" : "") : "Nombre de personnes"}</b>
-        <button class="pm" data-act="pick-people" data-d="-1" aria-label="Moins">−</button>
-        <button class="pm" data-act="pick-people" data-d="1" aria-label="Plus">+</button>
-      </div>
-      <div style="padding:12px 14px 14px">
-        <button class="btn" data-act="pick-confirm" data-slot="${slot}" data-id="${m.id}">Ajouter</button>
+      <div class="reveal${ui.pick.opened ? " open" : ""}">
+        <div class="step" style="padding:8px 14px 0">
+          <b>${people ? "Pour " + people + " personne" + (people > 1 ? "s" : "") : "Nombre de personnes"}</b>
+          <button class="pm" data-act="pick-people" data-d="-1" aria-label="Moins">−</button>
+          <button class="pm" data-act="pick-people" data-d="1" aria-label="Plus">+</button>
+        </div>
+        <div style="padding:12px 14px 14px">
+          <button class="btn" data-act="pick-confirm" data-slot="${slot}" data-id="${m.id}">Ajouter</button>
+        </div>
       </div>
     </div>`;
 }

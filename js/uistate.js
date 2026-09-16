@@ -6,5 +6,6 @@ export const ui = {
   query: "",          // recherche dans la bibliotheque
   sheet: null,        // { type, ...params } de la feuille ouverte
   draft: null,        // repas en cours d'edition { id|null, name, ingredients[] }
-  pick: null          // ligne depliee dans le choix d'un repas { slot, mealId, people }
+  pick: null,         // ligne depliee dans le choix d'un repas { slot, mealId, people, opened }
+  pickQuery: ""       // recherche dans le choix d'un repas (feuille de creneau)
 };

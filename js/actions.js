@@ -9,6 +9,7 @@ import { state, mealById } from "./store.js";
 import { ui } from "./uistate.js";
 import { render, renderSheet, renderTabbar, openSheet, closeSheet, closeDialog, isDialogOpen, toast, ask, refreshCheck } from "./render.js";
 import { mealList } from "./views.js";
+import { pickerRows } from "./sheets.js";
 
 export function initActions() {
   document.addEventListener("click", onClick);
@@ -48,12 +49,13 @@ async function onClick(e) {
     /* ---------- semaine ---------- */
     case "slot":
       ui.pick = null;
+      ui.pickQuery = "";
       openSheet({ type: "slot", slot: d.slot });
       break;
 
     case "pick-expand": {
       const already = ui.pick && ui.pick.slot === d.slot && ui.pick.mealId === d.id;
-      ui.pick = already ? null : { slot: d.slot, mealId: d.id, people: 0 };
+      ui.pick = already ? null : { slot: d.slot, mealId: d.id, people: 0, opened: false };
       renderSheet();
       break;
     }
@@ -68,6 +70,7 @@ async function onClick(e) {
     case "pick-confirm":
       store.addToSlot(d.slot, d.id, ui.pick ? ui.pick.people : 0);
       ui.pick = null;
+      ui.pickQuery = "";
       renderSheet();
       render();
       toast(mealById(d.id).name + " · " + slotLabel(d.slot));
@@ -254,6 +257,15 @@ function onInput(e) {
     ui.query = t.value;
     const c = document.getElementById("meal-list");
     if (c) c.innerHTML = mealList();
+    return;
+  }
+
+  // Recherche dans le choix d'un repas (feuille de creneau) : ne rafraichir
+  // que les lignes, sinon le champ perdrait le focus a chaque frappe.
+  if (t.id === "pickq") {
+    ui.pickQuery = t.value;
+    const c = document.getElementById("picker-rows");
+    if (c) c.innerHTML = pickerRows(t.dataset.slot);
     return;
   }
 

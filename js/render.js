@@ -48,11 +48,29 @@ export function renderSheet(animate) {
     return;
   }
 
+  // Un re-rendu de feuille remplace tout le contenu : sans ca, la liste du
+  // picker (ou toute autre liste scrollable de la feuille) sauterait en haut
+  // a chaque interaction (deplier un repas, regler les personnes...).
+  const prevBody = root.querySelector(".sheet-body");
+  const scrollY = prevBody ? prevBody.scrollTop : 0;
+
   root.innerHTML = SHEETS[ui.sheet.type](ui.sheet);
+
+  const body = root.querySelector(".sheet-body");
+  if (body) body.scrollTop = scrollY;
+
   document.body.classList.add("locked");
   scrim.classList.add("on");
   if (animate) requestAnimationFrame(() => root.classList.add("on"));
   else root.classList.add("on");
+
+  // La ligne de repas qui vient de se deplier demarre fermee (voir sheets.js) :
+  // on la laisse s'ouvrir en douceur au lieu d'apparaitre d'un coup.
+  if (ui.pick && !ui.pick.opened) {
+    const reveal = root.querySelector(".reveal:not(.open)");
+    if (reveal) requestAnimationFrame(() => reveal.classList.add("open"));
+    ui.pick.opened = true;
+  }
 }
 
 export function openSheet(sheet) {
@@ -65,6 +83,7 @@ export function closeSheet() {
   ui.sheet = null;
   ui.draft = null;
   ui.pick = null;
+  ui.pickQuery = "";
   renderSheet();
 }
 
