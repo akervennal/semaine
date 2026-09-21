@@ -16,6 +16,7 @@
   --shadow:0 1px 2px rgba(26,29,35,.06), 0 8px 24px rgba(26,29,35,.05);
   --r:14px;
   --tap:44px;
+  --ease-out:cubic-bezier(.22,.61,.36,1);
 }
 @media (prefers-color-scheme: dark){
   :root{
@@ -76,16 +77,26 @@ main{padding:14px 0 28px}
 .row .title{font-size:17px;letter-spacing:-.01em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .row .title.empty{color:var(--pencil)}
 .row .meta{font-size:12px;color:var(--pencil);margin-top:1px}
-.chev{flex:0 0 auto;color:var(--pencil);opacity:.55}
+.chev{flex:0 0 auto;color:var(--pencil);opacity:.55;transition:transform .18s var(--ease-out)}
+.chev.rot{transform:rotate(180deg)}
 .row:active{background:var(--blue-soft)}
 .row-expanded{border-top:1px solid var(--line)}
 .row-expanded:first-child{border-top:0}
 .row-expanded+.row{border-top:1px solid var(--line)}
 .row-expanded .row{padding-bottom:0}
-.reveal{max-height:0;opacity:0;overflow:hidden;transition:max-height .24s ease,opacity .18s ease}
-.reveal.open{max-height:160px;opacity:1}
-.menu-item{transition:opacity .22s ease,transform .22s ease}
-.menu-item.enter{opacity:0;transform:translateY(-8px)}
+
+/* Accordeon generique : deplier/replier une ligne (picker), ajouter/retirer un
+   repas d'"Au menu". grid-template-rows anime vers la hauteur reelle du
+   contenu (contrairement a un max-height devine), donc la duree reste
+   coherente quelle que soit la taille du bloc. */
+.acc{display:grid;grid-template-rows:0fr;opacity:0;overflow:hidden;transition:grid-template-rows .26s var(--ease-out),opacity .2s var(--ease-out)}
+.acc.open{grid-template-rows:1fr;opacity:1}
+.acc>.acc-body{overflow:hidden;min-height:0}
+
+/* Petite pulsation quand un nombre de personnes change, plutot qu'un
+   remplacement silencieux du texte. */
+.count-value{display:inline-block;transition:transform .16s var(--ease-out),opacity .16s var(--ease-out)}
+.count-value.bump{transform:scale(1.2);opacity:.55}
 
 /* ---------- buttons ---------- */
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:var(--tap);padding:0 18px;border-radius:11px;background:var(--blue);color:#fff;font-weight:600;font-size:16px;letter-spacing:-.01em;width:100%;transition:filter .15s ease,transform .1s ease}

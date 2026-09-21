@@ -17,19 +17,21 @@ export const SHEETS = {
         <div class="card-head"><span class="eyebrow">Au menu</span></div>
         ${arr.map((planned, i) => {
           const meal = mealById(planned.mealId);
+          // Un repas tout juste ajoute demarre plie (voir render.js), tous les autres restent ouverts.
           const justAdded = ui.justAdded && ui.justAdded.slot === s.slot && ui.justAdded.index === i;
-          return `<div class="menu-item${justAdded ? " enter" : ""}" style="padding:13px 14px${i ? ";border-top:1px solid var(--line)" : ""}">
+          const bump = ui.menuBump && ui.menuBump.slot === s.slot && ui.menuBump.index === i;
+          return `<div class="acc menu${justAdded ? "" : " open"}"><div class="acc-body" style="padding:13px 14px${i ? ";border-top:1px solid var(--line)" : ""}">
             <div style="font-size:19px;font-weight:700;letter-spacing:-.02em">${esc(meal.name)}</div>
             <div class="sub" style="margin-top:4px">${esc((meal.ingredients || []).join(" · ")) || "Aucun ingrédient"}</div>
             <div class="step" style="margin-top:14px">
-              <b>${planned.people ? "Pour " + planned.people + " personne" + (planned.people > 1 ? "s" : "") : "Nombre de personnes"}</b>
+              <b class="count-value${bump ? " bump" : ""}">${planned.people ? "Pour " + planned.people + " personne" + (planned.people > 1 ? "s" : "") : "Nombre de personnes"}</b>
               <button class="pm" data-act="people" data-slot="${s.slot}" data-i="${i}" data-d="-1" aria-label="Moins">−</button>
               <button class="pm" data-act="people" data-slot="${s.slot}" data-i="${i}" data-d="1" aria-label="Plus">+</button>
             </div>
             <div class="btn-row" style="margin-top:14px">
               <button class="btn danger" data-act="remove-from-slot" data-slot="${s.slot}" data-i="${i}">Retirer</button>
             </div>
-          </div>`;
+          </div></div>`;
         }).join("")}
       </section>`;
     }
@@ -180,25 +182,25 @@ function pickRow(slot, m) {
     return `<button class="row" data-act="pick-expand" data-slot="${slot}" data-id="${m.id}">
       <span class="body"><span class="title">${m.fav ? "★ " : ""}${esc(m.name)}</span>
       <span class="meta">${esc((m.ingredients || []).slice(0, 4).join(", "))}</span></span>
-      <span class="chev">＋</span></button>`;
+      <span class="chev">⌄</span></button>`;
   }
 
   const people = ui.pick.people;
   return `<div class="row-expanded">
       <button class="row" data-act="pick-expand" data-slot="${slot}" data-id="${m.id}">
         <span class="body"><span class="title">${m.fav ? "★ " : ""}${esc(m.name)}</span></span>
-        <span class="chev">︿</span>
+        <span class="chev rot">⌄</span>
       </button>
-      <div class="reveal${ui.pick.opened ? " open" : ""}">
+      <div class="acc pick${ui.pick.opened ? " open" : ""}"><div class="acc-body">
         <div class="step" style="padding:8px 14px 0">
-          <b>${people ? "Pour " + people + " personne" + (people > 1 ? "s" : "") : "Nombre de personnes"}</b>
+          <b class="count-value${ui.pick.bump ? " bump" : ""}">${people ? "Pour " + people + " personne" + (people > 1 ? "s" : "") : "Nombre de personnes"}</b>
           <button class="pm" data-act="pick-people" data-d="-1" aria-label="Moins">−</button>
           <button class="pm" data-act="pick-people" data-d="1" aria-label="Plus">+</button>
         </div>
         <div style="padding:12px 14px 14px">
           <button class="btn" data-act="pick-confirm" data-slot="${slot}" data-id="${m.id}">Ajouter</button>
         </div>
-      </div>
+      </div></div>
     </div>`;
 }
 

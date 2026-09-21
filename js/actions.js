@@ -54,22 +54,26 @@ async function onClick(e) {
       break;
 
     case "pick-expand": {
+      // Si une autre ligne est depliee, elle se replie proprement avant que
+      // celle-ci s'ouvre (au lieu de disparaitre d'un coup pendant que l'autre s'anime).
       const already = ui.pick && ui.pick.slot === d.slot && ui.pick.mealId === d.id;
-      if (already) { closeRevealThen(el, () => { ui.pick = null; renderSheet(); }); break; }
-      ui.pick = { slot: d.slot, mealId: d.id, people: 0, opened: false };
-      renderSheet();
+      closeOpenPickThen(() => {
+        ui.pick = already ? null : { slot: d.slot, mealId: d.id, people: 0, opened: false, bump: false };
+        renderSheet();
+      });
       break;
     }
 
     case "pick-people":
       if (ui.pick) {
         ui.pick.people = Math.max(0, Math.min(20, ui.pick.people + Number(d.d)));
+        ui.pick.bump = true;
         renderSheet();
       }
       break;
 
     case "pick-confirm":
-      closeRevealThen(el, () => {
+      closeOpenPickThen(() => {
         store.addToSlot(d.slot, d.id, ui.pick ? ui.pick.people : 0);
         ui.justAdded = { slot: d.slot, index: (state.week.slots[d.slot] || []).length - 1 };
         ui.pick = null;
@@ -80,14 +84,16 @@ async function onClick(e) {
       });
       break;
 
-    case "remove-from-slot":
-      store.removeFromSlot(d.slot, Number(d.i));
-      renderSheet();
-      render();
+    case "remove-from-slot": {
+      const acc = el.closest(".acc.menu");
+      const finish = () => { store.removeFromSlot(d.slot, Number(d.i)); renderSheet(); render(); };
+      collapseThenRun(acc, finish);
       break;
+    }
 
     case "people":
       store.bumpPeopleAt(d.slot, Number(d.i), Number(d.d));
+      ui.menuBump = { slot: d.slot, index: Number(d.i) };
       renderSheet();
       render();
       break;
@@ -251,16 +257,28 @@ async function onClick(e) {
   }
 }
 
-// Replie la ligne de repas depliee (animation inverse de sheets.js) avant
-// d'appliquer le changement d'etat, pour ne pas la faire disparaitre d'un coup.
-function closeRevealThen(el, cb) {
-  const reveal = el.closest(".row-expanded")?.querySelector(".reveal.open");
-  if (!reveal) { cb(); return; }
-  reveal.classList.remove("open");
+// Referme un accordeon (voir styles.css .acc) puis execute cb, au lieu de
+// faire disparaitre le bloc d'un coup en changeant l'etat. `acc` peut etre
+// null (rien a fermer) : cb s'execute alors immediatement.
+function collapseThenRun(acc, cb) {
+  if (!acc || !acc.classList.contains("open")) { cb(); return; }
+  acc.classList.remove("open");
   let done = false;
   const finish = () => { if (done) return; done = true; cb(); };
-  reveal.addEventListener("transitionend", finish, { once: true });
-  setTimeout(finish, 260);
+  acc.addEventListener("transitionend", finish, { once: true });
+  setTimeout(finish, 300);
+}
+
+// Referme la ligne du picker actuellement depliee (s'il y en a une) avant
+// d'executer cb : couvre aussi bien "replier cette ligne", "valider l'ajout"
+// que "en depliant une AUTRE ligne, refermer proprement celle-ci d'abord".
+function closeOpenPickThen(cb) {
+  const acc = document.querySelector(".acc.pick.open");
+  // Le chevron pivote en meme temps que le contenu se replie, au lieu de
+  // sauter a la fin de l'animation.
+  const chev = acc && acc.closest(".row-expanded")?.querySelector(".chev.rot");
+  if (chev) chev.classList.remove("rot");
+  collapseThenRun(acc, cb);
 }
 
 /* ---------- saisie ---------- */
