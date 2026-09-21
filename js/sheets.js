@@ -1,8 +1,9 @@
 // sheets.js — les panneaux qui montent du bas. Meme principe que les vues :
 // des chaines HTML, pilotees par data-act.
 
-import { MOMENTS, slotLabel, orderedDays, weekRange, parseIso, addDays, fmtShort, esc, normKey } from "./model.js";
+import { MOMENTS, slotLabel, orderedDays, weekRange, parseIso, addDays, fmtShort, esc, normKey, CATEGORIES } from "./model.js";
 import { state, mealById, slotsUsing } from "./store.js";
+import { categoryOf } from "./shopping.js";
 import { ui } from "./uistate.js";
 
 export const SHEETS = {
@@ -81,6 +82,17 @@ export const SHEETS = {
       <div class="btn-row" style="margin-top:18px"><button class="btn" data-act="save-meal">Enregistrer</button></div>`;
 
     return sheetShell(ui.draft.id ? "Modifier le repas" : "Nouveau repas", "", body);
+  },
+
+  /* Choix du rayon d'un ingredient, pour toujours (voir store.setCategory) */
+  cat(s) {
+    const current = categoryOf(s.key);
+    const body = `<section class="card">${CATEGORIES.map(c => `
+        <button class="row" data-act="cat-set" data-key="${esc(s.key)}" data-cat="${esc(c)}">
+          <span class="body"><span class="title">${esc(c)}</span></span>
+          ${c === current ? `<span class="chev" aria-hidden="true">✓</span>` : ""}
+        </button>`).join("")}</section>`;
+    return sheetShell(s.name, "Choisir un rayon", body);
   },
 
   /* Liste des semaines archivees */

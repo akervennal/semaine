@@ -1,7 +1,7 @@
 // shopping.js — la liste de courses est toujours derivee de la semaine,
 // jamais stockee. Modifier un creneau suffit donc a la mettre a jour.
 
-import { SLOTS, slotLabel, normKey, cap } from "./model.js";
+import { SLOTS, slotLabel, normKey, cap, CATEGORIES } from "./model.js";
 import { state, mealById, save } from "./store.js";
 
 /**
@@ -42,8 +42,32 @@ export const doneCount = list => list.filter(i => state.checked[i.key]).length;
 
 // Ordre d'affichage : a prendre en tete, pris en fin. Tri stable, donc
 // l'ordre alphabetique de shoppingList() est conserve dans chaque groupe.
-export const sortForDisplay = list =>
+const sortForDisplay = list =>
   list.slice().sort((a, b) => (state.checked[a.key] ? 1 : 0) - (state.checked[b.key] ? 1 : 0));
+
+// Rayon d'un ingredient, choisi une fois par l'utilisateur (voir store.setCategory).
+// "" = jamais choisi.
+export const categoryOf = key => state.categories[key] || "";
+
+// Groupe la liste par rayon pour l'affichage : "Non classe" en tete (pour
+// qu'on pense a le ranger), puis les rayons dans l'ordre du magasin. Les
+// groupes vides sont omis. Coche glisse en fin, mais a l'interieur de son
+// propre rayon seulement (voir refreshCheck dans render.js).
+export function groupForDisplay(list) {
+  const groups = new Map(["", ...CATEGORIES].map(c => [c, []]));
+  list.forEach(i => {
+    const cat = categoryOf(i.key);
+    if (!groups.has(cat)) groups.set(cat, []); // rayon inconnu (fichier importe d'une version future)
+    groups.get(cat).push(i);
+  });
+  return [...groups.entries()]
+    .filter(([, items]) => items.length)
+    .map(([cat, items]) => ({ cat, label: cat || "Non classé", items: sortForDisplay(items) }));
+}
+
+// Sous-liste d'un seul rayon, triee comme a l'affichage. Sert a ne reordonner
+// que le rayon concerne quand un article est coche, sans toucher aux autres.
+export const groupOf = (list, cat) => sortForDisplay(list.filter(i => categoryOf(i.key) === cat));
 
 // Oublie les cases cochees dont l'ingredient a disparu de la semaine.
 export function pruneChecked(list) {

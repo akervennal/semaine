@@ -26,7 +26,7 @@ export const canPersist = () => canStore;
 // Aucun jour impose : la semaine demarre le jour choisi (courses du samedi soir,
 // du dimanche midi, peu importe). Par defaut, aujourd'hui.
 export const emptyWeek = startIso => ({ start: startIso || iso(new Date()), slots: {} });
-export const blank = () => ({ meals: [], week: emptyWeek(), checked: {}, history: [] });
+export const blank = () => ({ meals: [], week: emptyWeek(), checked: {}, categories: {}, history: [] });
 
 // Anciennes donnees : un creneau contenait un objet planned unique, pas une liste.
 // On enveloppe au chargement pour ne rien perdre de ce qui etait deja planifie ou archive.
@@ -54,6 +54,7 @@ function read() {
       meals: Array.isArray(d.meals) ? d.meals : [],
       week: d.week && d.week.start ? { start: d.week.start, slots: migrateSlots(d.week.slots) } : emptyWeek(),
       checked: d.checked || {},
+      categories: d.categories || {},
       history: Array.isArray(d.history)
         ? d.history.map(w => Object.assign({}, w, { slots: migrateSlots(w.slots) }))
         : []
@@ -168,6 +169,13 @@ export function toggleChecked(key) {
 
 export function resetChecked() {
   state.checked = {};
+  save();
+}
+
+// Rayon d'un ingredient, choisi une fois pour toutes (voir normKey) : sert
+// pour tous les repas, toutes les semaines, tant qu'on ne le change pas.
+export function setCategory(key, category) {
+  state.categories[key] = category;
   save();
 }
 

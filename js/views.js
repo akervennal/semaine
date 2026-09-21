@@ -4,7 +4,7 @@
 
 import { MOMENTS, slotLabel, orderedDays, parseIso, addDays, fmtShort, weekRange, esc, normKey } from "./model.js";
 import { state, mealById, plannedCount, canPersist } from "./store.js";
-import { shoppingList, doneCount, sortForDisplay } from "./shopping.js";
+import { shoppingList, doneCount, groupForDisplay, categoryOf } from "./shopping.js";
 import { ui } from "./uistate.js";
 
 /* ============================ en-tetes ============================ */
@@ -100,8 +100,8 @@ export const VIEWS = {
 
     const done = doneCount(list);
     return `<div class="progress"><span>${done}/${list.length}</span><span class="bar"><i style="width:${Math.round(done / list.length * 100)}%"></i></span></div>
-      <div class="card paper">${sortForDisplay(list).map(itemHtml).join("")}</div>
-      <p class="sub" style="text-align:center;margin-top:14px">Chaque ingrédient indique le jour et le repas qui le réclament.</p>`;
+      <div class="card paper">${groupForDisplay(list).map(catGroupHtml).join("")}</div>
+      <p class="sub" style="text-align:center;margin-top:14px">Chaque ingrédient indique le jour et le repas qui le réclament. Touchez le rayon pour le classer.</p>`;
   },
 
   /* ---------------- Plus ---------------- */
@@ -146,13 +146,24 @@ export const VIEWS = {
 
 /* ============================ fragments ============================ */
 
+// Un groupe = un rayon : l'entete est immobile, seuls les articles bougent
+// (voir refreshCheck dans render.js, qui ne reordonne qu'un .cat-items a la fois).
+function catGroupHtml(g) {
+  return `<div class="cat-head">${esc(g.label)}</div>
+    <div class="cat-items">${g.items.map(itemHtml).join("")}</div>`;
+}
+
 export function itemHtml(i) {
   const done = !!state.checked[i.key];
-  return `<button class="item${done ? " done" : ""}" data-act="check" data-key="${esc(i.key)}" aria-pressed="${done}">
-    <span class="box"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 12.5l5 5 10-11"/></svg></span>
-    <span class="name">${esc(i.name)}</span>
-    <span class="ctx">${i.ctx.map(esc).join("<br>")}</span>
-  </button>`;
+  const cat = categoryOf(i.key);
+  return `<div class="item${done ? " done" : ""}" data-key="${esc(i.key)}">
+    <button class="check" data-act="check" data-key="${esc(i.key)}" aria-pressed="${done}">
+      <span class="box"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 12.5l5 5 10-11"/></svg></span>
+      <span class="name">${esc(i.name)}</span>
+      <span class="ctx">${i.ctx.map(esc).join("<br>")}</span>
+    </button>
+    <button class="tag" data-act="cat-pick" data-key="${esc(i.key)}" data-name="${esc(i.name)}">${esc(cat || "Non classé")}</button>
+  </div>`;
 }
 
 // Liste filtree par la recherche, favoris en tete.

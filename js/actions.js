@@ -178,6 +178,16 @@ async function onClick(e) {
       refreshCheck(el);
       break;
 
+    case "cat-pick":
+      openSheet({ type: "cat", key: d.key, name: d.name });
+      break;
+
+    case "cat-set":
+      store.setCategory(d.key, d.cat);
+      closeSheet();
+      render();
+      break;
+
     case "reset-checks":
       store.resetChecked();
       render();
@@ -377,6 +387,7 @@ function importFile() {
             ? { start: d.week.start, slots: store.migrateSlots(d.week.slots) }
             : store.emptyWeek(),
           checked: d.checked || {},
+          categories: d.categories || {},
           history: Array.isArray(d.history)
             ? d.history.map(w => Object.assign({}, w, { slots: store.migrateSlots(w.slots) }))
             : []

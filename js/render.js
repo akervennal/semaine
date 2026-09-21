@@ -3,7 +3,7 @@
 // une couche de reconciliation. La position de defilement est preservee.
 
 import { esc } from "./model.js";
-import { shoppingList, remaining, pruneChecked, sortForDisplay } from "./shopping.js";
+import { shoppingList, remaining, pruneChecked, categoryOf, groupOf } from "./shopping.js";
 import { ui } from "./uistate.js";
 import { HEADS, VIEWS } from "./views.js";
 import { SHEETS } from "./sheets.js";
@@ -148,23 +148,25 @@ export function closeDialog(value) {
 
 // Mise a jour ciblee d'une ligne de courses : cocher ne doit pas
 // reconstruire la liste ni faire sauter le defilement en plein magasin.
-// Les articles coches glissent en fin de liste (FLIP : on mesure avant,
-// on reordonne le DOM, puis on anime depuis l'ancienne position).
+// Les articles coches glissent en fin DE LEUR RAYON (FLIP : on mesure avant,
+// on reordonne le DOM, puis on anime depuis l'ancienne position). Les autres
+// rayons ne sont pas touches.
 export function refreshCheck(el) {
-  const paper = el.closest(".paper");
-  const items = paper ? [...paper.children] : [];
+  const item = el.closest(".item");
+  const wrap = item && item.closest(".cat-items");
+  const items = wrap ? [...wrap.children] : [];
   const before = new Map(items.map(it => [it, it.getBoundingClientRect()]));
 
-  el.classList.toggle("done");
-  el.setAttribute("aria-pressed", el.classList.contains("done"));
+  item.classList.toggle("done");
+  el.setAttribute("aria-pressed", item.classList.contains("done"));
 
   const list = shoppingList();
 
-  if (paper) {
+  if (wrap) {
     const byKey = new Map(items.map(it => [it.dataset.key, it]));
-    sortForDisplay(list).forEach(i => {
+    groupOf(list, categoryOf(item.dataset.key)).forEach(i => {
       const node = byKey.get(i.key);
-      if (node) paper.appendChild(node);
+      if (node) wrap.appendChild(node);
     });
     items.forEach(it => {
       const dy = before.get(it).top - it.getBoundingClientRect().top;

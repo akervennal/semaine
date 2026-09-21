@@ -34,6 +34,17 @@ export function orderedDays(startIso) {
 
 export const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
 
+// Rayons pour trier la liste de courses. Ordre = ordre de passage en magasin.
+export const CATEGORIES = [
+  "Fruits & légumes",
+  "Crémerie",
+  "Viande & poisson",
+  "Épicerie",
+  "Surgelés",
+  "Boissons",
+  "Autre"
+];
+
 /* ---------- dates ---------- */
 // Midi comme heure de reference : evite les decalages de fuseau au passage a l'ISO.
 
