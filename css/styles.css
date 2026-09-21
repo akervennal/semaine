@@ -139,6 +139,7 @@ main{padding:14px 0 28px}
 .item.done .ctx{opacity:.5}
 .tag{flex:0 0 auto;align-self:center;margin-left:6px;padding:6px 10px;min-height:30px;border-radius:999px;background:var(--line);color:var(--pencil);font-size:11.5px;font-weight:600;white-space:nowrap;transition:opacity .15s ease}
 .tag:active{opacity:.6}
+.tag.icon{background:none;min-width:30px;padding:6px;text-align:center;font-size:15px;letter-spacing:1px;color:var(--pencil);opacity:.55}
 .progress{display:flex;align-items:center;gap:10px;margin:0 0 10px;font-size:13px;color:var(--pencil)}
 .bar{flex:1;height:3px;border-radius:2px;background:var(--line);overflow:hidden}
 .bar i{display:block;height:100%;background:var(--blue);transition:width .25s ease}

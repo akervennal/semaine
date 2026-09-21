@@ -156,13 +156,20 @@ function catGroupHtml(g) {
 export function itemHtml(i) {
   const done = !!state.checked[i.key];
   const cat = categoryOf(i.key);
+  // Une fois classe, le rayon est deja dit par l'entete du groupe : repeter
+  // son nom sur chaque ligne serait redondant. On garde juste une petite
+  // icone discrete pour pouvoir corriger. "Non classe" reste en toutes
+  // lettres, pour qu'on pense a le ranger.
+  const tag = cat
+    ? `<button class="tag icon" data-act="cat-pick" data-key="${esc(i.key)}" data-name="${esc(i.name)}" aria-label="Changer de rayon (${esc(cat)})">⋯</button>`
+    : `<button class="tag" data-act="cat-pick" data-key="${esc(i.key)}" data-name="${esc(i.name)}">Non classé</button>`;
   return `<div class="item${done ? " done" : ""}" data-key="${esc(i.key)}">
     <button class="check" data-act="check" data-key="${esc(i.key)}" aria-pressed="${done}">
       <span class="box"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 12.5l5 5 10-11"/></svg></span>
       <span class="name">${esc(i.name)}</span>
       <span class="ctx">${i.ctx.map(esc).join("<br>")}</span>
     </button>
-    <button class="tag" data-act="cat-pick" data-key="${esc(i.key)}" data-name="${esc(i.name)}">${esc(cat || "Non classé")}</button>
+    ${tag}
   </div>`;
 }
 
