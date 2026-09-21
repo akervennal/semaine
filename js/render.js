@@ -3,7 +3,7 @@
 // une couche de reconciliation. La position de defilement est preservee.
 
 import { esc } from "./model.js";
-import { shoppingList, remaining } from "./shopping.js";
+import { shoppingList, remaining, pruneChecked, sortForDisplay } from "./shopping.js";
 import { ui } from "./uistate.js";
 import { HEADS, VIEWS } from "./views.js";
 import { SHEETS } from "./sheets.js";
@@ -12,6 +12,9 @@ const $ = sel => document.querySelector(sel);
 
 export function render() {
   const y = window.scrollY;
+  // Un ingredient qui disparait de la semaine (repas retire, repas supprime...)
+  // doit oublier sa case cochee tout de suite, pas seulement en rouvrant Courses.
+  pruneChecked(shoppingList());
   $("#topbar").innerHTML = `<div class="wrap">${HEADS[ui.tab]()}</div>`;
   $("#view").innerHTML = VIEWS[ui.tab]();
   renderTabbar();
@@ -65,19 +68,29 @@ export function renderSheet(animate) {
   else root.classList.add("on");
 
   // La ligne de repas qui vient de se deplier demarre fermee (voir sheets.js) :
-  // on la laisse s'ouvrir en douceur au lieu d'apparaitre d'un coup.
+  // on la laisse s'ouvrir en douceur au lieu d'apparaitre d'un coup. Mais pas
+  // a chaque re-rendu (regler le nombre de personnes ne doit pas la rejouer).
   if (ui.pick && !ui.pick.opened) {
-    const reveal = root.querySelector(".reveal:not(.open)");
-    if (reveal) requestAnimationFrame(() => reveal.classList.add("open"));
+    const acc = root.querySelector(".acc.pick:not(.open)");
+    if (acc) requestAnimationFrame(() => acc.classList.add("open"));
     ui.pick.opened = true;
   }
 
-  // Le repas tout juste ajoute demarre translucide/decale (voir sheets.js) :
-  // on le laisse s'installer en douceur plutot que d'apparaitre d'un coup.
+  // Le repas tout juste ajoute demarre plie (voir sheets.js) : on le laisse
+  // s'installer en douceur dans "Au menu" plutot que d'apparaitre d'un coup.
   if (ui.justAdded) {
-    const item = root.querySelector(".menu-item.enter");
-    if (item) requestAnimationFrame(() => item.classList.remove("enter"));
+    const acc = root.querySelector(".acc.menu:not(.open)");
+    if (acc) requestAnimationFrame(() => acc.classList.add("open"));
     ui.justAdded = null;
+  }
+
+  // Le nombre de personnes qui vient de changer (picker ou "Au menu") pulse
+  // brievement au lieu de changer silencieusement.
+  if ((ui.pick && ui.pick.bump) || ui.menuBump) {
+    const b = root.querySelector(".count-value.bump");
+    if (b) requestAnimationFrame(() => b.classList.remove("bump"));
+    if (ui.pick) ui.pick.bump = false;
+    ui.menuBump = null;
   }
 }
 
@@ -135,11 +148,41 @@ export function closeDialog(value) {
 
 // Mise a jour ciblee d'une ligne de courses : cocher ne doit pas
 // reconstruire la liste ni faire sauter le defilement en plein magasin.
+// Les articles coches glissent en fin de liste (FLIP : on mesure avant,
+// on reordonne le DOM, puis on anime depuis l'ancienne position).
 export function refreshCheck(el) {
+  const paper = el.closest(".paper");
+  const items = paper ? [...paper.children] : [];
+  const before = new Map(items.map(it => [it, it.getBoundingClientRect()]));
+
   el.classList.toggle("done");
   el.setAttribute("aria-pressed", el.classList.contains("done"));
 
   const list = shoppingList();
+
+  if (paper) {
+    const byKey = new Map(items.map(it => [it.dataset.key, it]));
+    sortForDisplay(list).forEach(i => {
+      const node = byKey.get(i.key);
+      if (node) paper.appendChild(node);
+    });
+    items.forEach(it => {
+      const dy = before.get(it).top - it.getBoundingClientRect().top;
+      if (!dy) return;
+      it.classList.add("sliding");
+      it.style.transition = "none";
+      it.style.transform = `translateY(${dy}px)`;
+      requestAnimationFrame(() => {
+        it.style.transition = "transform .32s cubic-bezier(.2,.7,.3,1)";
+        it.style.transform = "";
+      });
+      it.addEventListener("transitionend", () => {
+        it.style.transition = it.style.transform = "";
+        it.classList.remove("sliding");
+      }, { once: true });
+    });
+  }
+
   const done = list.length - remaining(list);
   const bar = $(".bar i");
   const label = $(".progress span");

@@ -40,6 +40,11 @@ export function shoppingList() {
 export const remaining = list => list.filter(i => !state.checked[i.key]).length;
 export const doneCount = list => list.filter(i => state.checked[i.key]).length;
 
+// Ordre d'affichage : a prendre en tete, pris en fin. Tri stable, donc
+// l'ordre alphabetique de shoppingList() est conserve dans chaque groupe.
+export const sortForDisplay = list =>
+  list.slice().sort((a, b) => (state.checked[a.key] ? 1 : 0) - (state.checked[b.key] ? 1 : 0));
+
 // Oublie les cases cochees dont l'ingredient a disparu de la semaine.
 export function pruneChecked(list) {
   const keys = new Set(list.map(i => i.key));

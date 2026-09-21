@@ -4,7 +4,7 @@
 
 import { MOMENTS, slotLabel, orderedDays, parseIso, addDays, fmtShort, weekRange, esc, normKey } from "./model.js";
 import { state, mealById, plannedCount, canPersist } from "./store.js";
-import { shoppingList, pruneChecked, doneCount } from "./shopping.js";
+import { shoppingList, doneCount, sortForDisplay } from "./shopping.js";
 import { ui } from "./uistate.js";
 
 /* ============================ en-tetes ============================ */
@@ -91,7 +91,6 @@ export const VIEWS = {
   /* ---------------- Courses ---------------- */
   courses() {
     const list = shoppingList();
-    pruneChecked(list);
 
     if (!list.length) {
       return `<div class="card"><div class="empty"><strong>Rien à acheter</strong>
@@ -101,7 +100,7 @@ export const VIEWS = {
 
     const done = doneCount(list);
     return `<div class="progress"><span>${done}/${list.length}</span><span class="bar"><i style="width:${Math.round(done / list.length * 100)}%"></i></span></div>
-      <div class="card paper">${list.map(itemHtml).join("")}</div>
+      <div class="card paper">${sortForDisplay(list).map(itemHtml).join("")}</div>
       <p class="sub" style="text-align:center;margin-top:14px">Chaque ingrédient indique le jour et le repas qui le réclament.</p>`;
   },
 
