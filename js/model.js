@@ -35,13 +35,15 @@ export function orderedDays(startIso) {
 export const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
 
 // Rayons pour trier la liste de courses. Repris des categories de la liste
-// de courses de Reminders (Apple), traduites.
+// de courses de Reminders (Apple), traduites, avec "Epicerie" (conserves,
+// pates, riz, condiments...) remis pour ne rien laisser sans rayon evident.
 export const CATEGORIES = [
   "Fruits & légumes",
   "Viande",
   "Crèmerie, œufs & fromage",
   "Boulangerie",
   "Pains & céréales",
+  "Épicerie",
   "Surgelés",
   "Pâtisserie",
   "Snacks & confiseries",
