@@ -34,15 +34,20 @@ export function orderedDays(startIso) {
 
 export const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
 
-// Rayons pour trier la liste de courses. Ordre = ordre de passage en magasin.
+// Rayons pour trier la liste de courses. Repris des categories de la liste
+// de courses de Reminders (Apple), traduites.
 export const CATEGORIES = [
   "Fruits & légumes",
-  "Crémerie",
-  "Viande & poisson",
-  "Épicerie",
+  "Viande",
+  "Crèmerie, œufs & fromage",
+  "Boulangerie",
+  "Pains & céréales",
   "Surgelés",
-  "Boissons",
-  "Autre"
+  "Pâtisserie",
+  "Snacks & confiseries",
+  "Produits ménagers",
+  "Soins & santé",
+  "Vins, bières & spiritueux"
 ];
 
 /* ---------- dates ---------- */
