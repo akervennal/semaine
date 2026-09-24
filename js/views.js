@@ -2,7 +2,7 @@
 // sans effet de bord : les interactions passent par des attributs data-act
 // que actions.js intercepte par delegation.
 
-import { MOMENTS, orderedDays, parseIso, addDays, fmtShort, weekRange, esc, normKey, iso, cap } from "./model.js";
+import { MOMENTS, orderedDays, parseIso, addDays, weekRange, esc, normKey, iso, cap } from "./model.js";
 import { state, mealById, plannedCount, canPersist } from "./store.js";
 import { shoppingList, doneCount, groupForDisplay, categoryOf } from "./shopping.js";
 import { ui } from "./uistate.js";
@@ -37,37 +37,41 @@ export const HEADS = {
 export const VIEWS = {
 
   /* ---------------- Semaine ---------------- */
-  // Grille compacte, toute la semaine tient sur un ecran sans defiler :
-  // un jour par ligne, Midi/Soir en colonnes. Meme papier ligne que Courses.
+  // Agenda a bandes : une ligne par jour (date en badge + deux puces Midi/Soir),
+  // toute la semaine tient sur un ecran sans defiler.
   semaine() {
     const start = parseIso(state.week.start);
     const todayIso = iso(new Date());
 
-    const rows = orderedDays(state.week.start).map((d, i) => {
+    const days = orderedDays(state.week.start).map((d, i) => {
       const date = addDays(start, i);
-      const cells = MOMENTS.map(m => {
+      const isToday = iso(date) === todayIso;
+
+      const chips = MOMENTS.map(m => {
         const id = d.k + "-" + m.k;
         const names = (state.week.slots[id] || []).map(p => (mealById(p.mealId) || {}).name).filter(Boolean);
-        const label = names.length ? names[0] + (names.length > 1 ? " +" + (names.length - 1) : "") : "+";
+        const label = names.length ? names[0] + (names.length > 1 ? " +" + (names.length - 1) : "") : "Ajouter";
         const full = d.n + " " + m.n.toLowerCase() + " : " + (names.length ? names.join(", ") : "libre");
-        return `<button class="cal-cell${names.length ? "" : " empty"}" data-act="slot" data-slot="${id}" aria-label="${esc(full)}">${esc(label)}</button>`;
+        return `<button class="ag-chip${names.length ? "" : " empty"}" data-act="slot" data-slot="${id}" aria-label="${esc(full)}">
+            <span class="ag-chip-label">${esc(m.n)}</span>
+            <span class="ag-chip-text">${esc(label)}</span>
+          </button>`;
       }).join("");
-      return `<div class="cal-day${iso(date) === todayIso ? " today" : ""}">
-          <span class="cal-dname">${esc(cap(d.k))}</span><span class="cal-date">${esc(fmtShort(date))}</span>
-        </div>${cells}`;
+
+      return `<div class="ag-day${isToday ? " today" : ""}">
+          <div class="ag-date"><span class="ag-num">${date.getDate()}</span><span class="ag-dow">${esc(cap(d.k))}</span></div>
+          <div class="ag-slots">${chips}</div>
+        </div>`;
     }).join("");
 
-    const grid = `<div class="card paper cal">
-        <span class="cal-head"></span><span class="cal-head">Midi</span><span class="cal-head">Soir</span>
-        ${rows}
-      </div>`;
+    const agenda = `<div class="agenda">${days}</div>`;
 
     if (!state.meals.length) {
       return `<div class="card"><div class="empty"><strong>Commencez par vos repas</strong>
         La semaine se remplit avec les repas de votre bibliothèque.
-        <button class="btn" data-act="tab" data-tab="repas">Ouvrir la bibliothèque</button></div></div>` + grid;
+        <button class="btn" data-act="tab" data-tab="repas">Ouvrir la bibliothèque</button></div></div>` + agenda;
     }
-    return grid;
+    return agenda;
   },
 
   /* ---------------- Repas ---------------- */
