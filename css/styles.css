@@ -113,6 +113,26 @@ main{padding:14px 0 28px}
 @media (prefers-color-scheme: dark){.add{color:#0F1218}}
 .add:active{transform:scale(.88)}
 
+/* ---------- semaine : calendrier retro, toute la semaine sans defiler ---------- */
+/* .cal partage le papier ligne de .paper (voir plus bas) ; seule la position
+   de la reglure rouge differe (colonne des jours au lieu de la case a cocher),
+   d'ou le selecteur plus specifique pour gagner face a .paper::before. */
+.cal{display:grid;grid-template-columns:62px 1fr 1fr}
+.cal.paper::before{left:62px}
+.cal-head{padding:8px 6px 6px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--pencil);text-align:center}
+.cal-day{display:flex;flex-direction:column;justify-content:center;gap:1px;padding:6px 4px;border-top:1px solid var(--line)}
+.cal-dname{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.03em;color:var(--pencil)}
+.cal-date{font-size:14px;font-weight:800;color:var(--ink);letter-spacing:-.01em}
+.cal-day.today .cal-date{color:var(--blue)}
+.cal-cell{
+  min-height:46px;display:flex;align-items:center;
+  padding:6px 8px;border-top:1px solid var(--line);border-left:1px solid var(--line);
+  background:none;font-size:13px;font-weight:600;color:var(--ink);text-align:left;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;transition:background .15s ease;
+}
+.cal-cell.empty{color:var(--pencil);font-weight:400}
+.cal-cell:active{background:var(--blue-soft)}
+
 /* ---------- courses : la page-carnet ---------- */
 .paper{
   background-color:var(--card);

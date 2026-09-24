@@ -2,7 +2,7 @@
 // sans effet de bord : les interactions passent par des attributs data-act
 // que actions.js intercepte par delegation.
 
-import { MOMENTS, slotLabel, orderedDays, parseIso, addDays, fmtShort, weekRange, esc, normKey } from "./model.js";
+import { MOMENTS, orderedDays, parseIso, addDays, fmtShort, weekRange, esc, normKey, iso, cap } from "./model.js";
 import { state, mealById, plannedCount, canPersist } from "./store.js";
 import { shoppingList, doneCount, groupForDisplay, categoryOf } from "./shopping.js";
 import { ui } from "./uistate.js";
@@ -37,37 +37,37 @@ export const HEADS = {
 export const VIEWS = {
 
   /* ---------------- Semaine ---------------- */
+  // Grille compacte, toute la semaine tient sur un ecran sans defiler :
+  // un jour par ligne, Midi/Soir en colonnes. Meme papier ligne que Courses.
   semaine() {
     const start = parseIso(state.week.start);
-    let html = "";
+    const todayIso = iso(new Date());
 
-    orderedDays(state.week.start).forEach((d, i) => {
+    const rows = orderedDays(state.week.start).map((d, i) => {
       const date = addDays(start, i);
-      html += `<section class="card">
-        <div class="card-head"><span class="eyebrow">${esc(d.n)}</span><span class="d">${esc(fmtShort(date))}</span></div>
-        ${MOMENTS.map(m => {
-          const id = d.k + "-" + m.k;
-          const names = (state.week.slots[id] || []).map(p => {
-            const meal = mealById(p.mealId);
-            return meal ? esc(meal.name) + (p.people ? " (" + p.people + " pers.)" : "") : "";
-          }).filter(Boolean);
-          return `<button class="row" data-act="slot" data-slot="${id}">
-            <span class="slot">${esc(m.n)}</span>
-            <span class="body">
-              <span class="title${names.length ? "" : " empty"}">${names.length ? names.join(" · ") : "Ajouter un repas"}</span>
-            </span>
-            <span class="chev">›</span>
-          </button>`;
-        }).join("")}
-      </section>`;
-    });
+      const cells = MOMENTS.map(m => {
+        const id = d.k + "-" + m.k;
+        const names = (state.week.slots[id] || []).map(p => (mealById(p.mealId) || {}).name).filter(Boolean);
+        const label = names.length ? names[0] + (names.length > 1 ? " +" + (names.length - 1) : "") : "+";
+        const full = d.n + " " + m.n.toLowerCase() + " : " + (names.length ? names.join(", ") : "libre");
+        return `<button class="cal-cell${names.length ? "" : " empty"}" data-act="slot" data-slot="${id}" aria-label="${esc(full)}">${esc(label)}</button>`;
+      }).join("");
+      return `<div class="cal-day${iso(date) === todayIso ? " today" : ""}">
+          <span class="cal-dname">${esc(cap(d.k))}</span><span class="cal-date">${esc(fmtShort(date))}</span>
+        </div>${cells}`;
+    }).join("");
+
+    const grid = `<div class="card paper cal">
+        <span class="cal-head"></span><span class="cal-head">Midi</span><span class="cal-head">Soir</span>
+        ${rows}
+      </div>`;
 
     if (!state.meals.length) {
-      html = `<div class="card"><div class="empty"><strong>Commencez par vos repas</strong>
+      return `<div class="card"><div class="empty"><strong>Commencez par vos repas</strong>
         La semaine se remplit avec les repas de votre bibliothèque.
-        <button class="btn" data-act="tab" data-tab="repas">Ouvrir la bibliothèque</button></div></div>` + html;
+        <button class="btn" data-act="tab" data-tab="repas">Ouvrir la bibliothèque</button></div></div>` + grid;
     }
-    return html;
+    return grid;
   },
 
   /* ---------------- Repas ---------------- */
