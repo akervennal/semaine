@@ -3,7 +3,7 @@
 // IMPORTANT : incrementer CACHE a chaque modification de fichier statique,
 // sinon les appareils deja installes continueront de servir l'ancienne version.
 
-const CACHE = "semaine-v24";
+const CACHE = "semaine-v25";
 
 const ASSETS = [
   "./",

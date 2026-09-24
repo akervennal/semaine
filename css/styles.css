@@ -121,8 +121,8 @@ main{padding:14px 0 28px}
   position:relative;
 }
 .paper::before{content:"";position:absolute;top:0;bottom:0;left:44px;width:1px;background:var(--red);opacity:.45}
-.cat-head{padding:16px 14px 6px;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--pencil)}
-.cat-head:first-child{padding-top:14px}
+.cat-head{padding:18px 14px 8px;font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--ink)}
+.cat-head:first-child{padding-top:16px}
 .item{display:flex;align-items:flex-start;width:100%;padding:11px 14px 11px 0;position:relative;transition:background .15s ease}
 .item.sliding{z-index:1}
 .item+.item{border-top:1px solid var(--line)}
