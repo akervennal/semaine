@@ -146,11 +146,12 @@ export const VIEWS = {
 
 /* ============================ fragments ============================ */
 
-// Un groupe = un rayon : l'entete est immobile, seuls les articles bougent
-// (voir refreshCheck dans render.js, qui ne reordonne qu'un .cat-items a la fois).
+// Un groupe = un rayon, ou la pile "Pris" (voir shopping.groupForDisplay).
+// L'entete est immobile ; data-cat permet a refreshCheck (render.js) de
+// retrouver le bon groupe pour y deplacer un article coche/decoche.
 function catGroupHtml(g) {
   return `<div class="cat-head">${esc(g.label)}</div>
-    <div class="cat-items">${g.items.map(itemHtml).join("")}</div>`;
+    <div class="cat-items" data-cat="${esc(g.key)}">${g.items.map(itemHtml).join("")}</div>`;
 }
 
 export function itemHtml(i) {

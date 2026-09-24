@@ -3,7 +3,7 @@
 // une couche de reconciliation. La position de defilement est preservee.
 
 import { esc } from "./model.js";
-import { shoppingList, remaining, pruneChecked, categoryOf, groupOf } from "./shopping.js";
+import { shoppingList, remaining, pruneChecked, categoryOf, bucketOf, DONE_KEY } from "./shopping.js";
 import { ui } from "./uistate.js";
 import { HEADS, VIEWS } from "./views.js";
 import { SHEETS } from "./sheets.js";
@@ -146,44 +146,55 @@ export function closeDialog(value) {
   }
 }
 
-// Mise a jour ciblee d'une ligne de courses : cocher ne doit pas
-// reconstruire la liste ni faire sauter le defilement en plein magasin.
-// Les articles coches glissent en fin DE LEUR RAYON (FLIP : on mesure avant,
-// on reordonne le DOM, puis on anime depuis l'ancienne position). Les autres
-// rayons ne sont pas touches.
+// Mise a jour ciblee d'une ligne de courses : cocher ne doit pas reconstruire
+// la liste ni faire sauter le defilement en plein magasin. Un article coche
+// quitte son rayon pour rejoindre la pile "Pris" en fin de page (et l'inverse
+// en le decochant) : FLIP sur les deux groupes concernes (on mesure avant,
+// on reordonne le DOM, puis on anime depuis l'ancienne position). Si le
+// groupe de destination n'existe pas encore a l'ecran (premiere case cochee,
+// dernier article "Pris" decoche...), on se rabat sur un rendu complet.
 export function refreshCheck(el) {
   const item = el.closest(".item");
-  const wrap = item && item.closest(".cat-items");
-  const items = wrap ? [...wrap.children] : [];
-  const before = new Map(items.map(it => [it, it.getBoundingClientRect()]));
-
-  item.classList.toggle("done");
-  el.setAttribute("aria-pressed", item.classList.contains("done"));
+  const fromWrap = item && item.closest(".cat-items");
+  const nowDone = item.classList.toggle("done");
+  el.setAttribute("aria-pressed", nowDone);
 
   const list = shoppingList();
+  const destKey = nowDone ? DONE_KEY : categoryOf(item.dataset.key);
+  const destWrap = [...document.querySelectorAll(".cat-items")].find(w => w.dataset.cat === destKey);
 
-  if (wrap) {
-    const byKey = new Map(items.map(it => [it.dataset.key, it]));
-    groupOf(list, categoryOf(item.dataset.key)).forEach(i => {
-      const node = byKey.get(i.key);
-      if (node) wrap.appendChild(node);
-    });
-    items.forEach(it => {
-      const dy = before.get(it).top - it.getBoundingClientRect().top;
-      if (!dy) return;
-      it.classList.add("sliding");
-      it.style.transition = "none";
-      it.style.transform = `translateY(${dy}px)`;
-      requestAnimationFrame(() => {
-        it.style.transition = "transform .32s cubic-bezier(.2,.7,.3,1)";
-        it.style.transform = "";
-      });
-      it.addEventListener("transitionend", () => {
-        it.style.transition = it.style.transform = "";
-        it.classList.remove("sliding");
-      }, { once: true });
-    });
+  if (!fromWrap || !destWrap) { render(); return; }
+
+  const nodes = [...fromWrap.children, ...destWrap.children];
+  const before = new Map(nodes.map(n => [n, n.getBoundingClientRect()]));
+  const byKey = new Map(nodes.map(n => [n.dataset.key, n]));
+
+  bucketOf(list, destKey).forEach(i => {
+    const node = byKey.get(i.key);
+    if (node) destWrap.appendChild(node);
+  });
+
+  // Rayon vide une fois l'article parti : on retire son entete, comme le ferait un rendu complet.
+  if (!fromWrap.children.length) {
+    fromWrap.previousElementSibling?.remove();
+    fromWrap.remove();
   }
+
+  nodes.forEach(it => {
+    const dy = before.get(it).top - it.getBoundingClientRect().top;
+    if (!dy) return;
+    it.classList.add("sliding");
+    it.style.transition = "none";
+    it.style.transform = `translateY(${dy}px)`;
+    requestAnimationFrame(() => {
+      it.style.transition = "transform .32s cubic-bezier(.2,.7,.3,1)";
+      it.style.transform = "";
+    });
+    it.addEventListener("transitionend", () => {
+      it.style.transition = it.style.transform = "";
+      it.classList.remove("sliding");
+    }, { once: true });
+  });
 
   const done = list.length - remaining(list);
   const bar = $(".bar i");

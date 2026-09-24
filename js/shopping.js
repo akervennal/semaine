@@ -40,34 +40,42 @@ export function shoppingList() {
 export const remaining = list => list.filter(i => !state.checked[i.key]).length;
 export const doneCount = list => list.filter(i => state.checked[i.key]).length;
 
-// Ordre d'affichage : a prendre en tete, pris en fin. Tri stable, donc
-// l'ordre alphabetique de shoppingList() est conserve dans chaque groupe.
-const sortForDisplay = list =>
-  list.slice().sort((a, b) => (state.checked[a.key] ? 1 : 0) - (state.checked[b.key] ? 1 : 0));
-
 // Rayon d'un ingredient, choisi une fois par l'utilisateur (voir store.setCategory).
 // "" = jamais choisi.
 export const categoryOf = key => state.categories[key] || "";
 
-// Groupe la liste par rayon pour l'affichage : "Non classe" en tete (pour
-// qu'on pense a le ranger), puis les rayons dans l'ordre du magasin. Les
-// groupes vides sont omis. Coche glisse en fin, mais a l'interieur de son
-// propre rayon seulement (voir refreshCheck dans render.js).
+// Identifiant du groupe "Pris" (regroupe tous les articles coches, quel que
+// soit leur rayon). Ne peut pas entrer en collision avec un vrai rayon ou
+// avec "" (non classe).
+export const DONE_KEY = "__pris__";
+
+// Groupe la liste pour l'affichage : les rayons ne montrent que ce qu'il
+// reste a acheter ("Non classe" en tete, puis l'ordre du magasin), et tout
+// article coche - quel que soit son rayon - rejoint une seule pile "Pris"
+// en fin de page. Les groupes vides sont omis. shoppingList() est deja trie
+// alphabetiquement, donc l'ordre est conserve sans re-tri.
 export function groupForDisplay(list) {
   const groups = new Map(["", ...CATEGORIES].map(c => [c, []]));
+  const done = [];
   list.forEach(i => {
+    if (state.checked[i.key]) { done.push(i); return; }
     const cat = categoryOf(i.key);
     if (!groups.has(cat)) groups.set(cat, []); // rayon inconnu (fichier importe d'une version future)
     groups.get(cat).push(i);
   });
-  return [...groups.entries()]
+  const result = [...groups.entries()]
     .filter(([, items]) => items.length)
-    .map(([cat, items]) => ({ cat, label: cat || "Non classé", items: sortForDisplay(items) }));
+    .map(([cat, items]) => ({ key: cat, label: cat || "Non classé", items }));
+  if (done.length) result.push({ key: DONE_KEY, label: "Pris", items: done });
+  return result;
 }
 
-// Sous-liste d'un seul rayon, triee comme a l'affichage. Sert a ne reordonner
-// que le rayon concerne quand un article est coche, sans toucher aux autres.
-export const groupOf = (list, cat) => sortForDisplay(list.filter(i => categoryOf(i.key) === cat));
+// Sous-liste d'un seul groupe (un rayon, ou DONE_KEY pour "Pris"), triee
+// comme a l'affichage. Sert a ne reordonner que le groupe concerne quand un
+// article est coche/decoche (voir refreshCheck dans render.js).
+export const bucketOf = (list, key) => key === DONE_KEY
+  ? list.filter(i => state.checked[i.key])
+  : list.filter(i => !state.checked[i.key] && categoryOf(i.key) === key);
 
 // Oublie les cases cochees dont l'ingredient a disparu de la semaine.
 export function pruneChecked(list) {
