@@ -47,7 +47,7 @@ export const categoryOf = key => state.categories[key] || "";
 // Identifiant du groupe "Pris" (regroupe tous les articles coches, quel que
 // soit leur rayon). Ne peut pas entrer en collision avec un vrai rayon ou
 // avec "" (non classe).
-export const DONE_KEY = "__pris__";
+const DONE_KEY = "__pris__";
 
 // Groupe la liste pour l'affichage : les rayons ne montrent que ce qu'il
 // reste a acheter ("Non classe" en tete, puis l'ordre du magasin), et tout
@@ -69,13 +69,6 @@ export function groupForDisplay(list) {
   if (done.length) result.push({ key: DONE_KEY, label: "Pris", items: done });
   return result;
 }
-
-// Sous-liste d'un seul groupe (un rayon, ou DONE_KEY pour "Pris"), triee
-// comme a l'affichage. Sert a ne reordonner que le groupe concerne quand un
-// article est coche/decoche (voir refreshCheck dans render.js).
-export const bucketOf = (list, key) => key === DONE_KEY
-  ? list.filter(i => state.checked[i.key])
-  : list.filter(i => !state.checked[i.key] && categoryOf(i.key) === key);
 
 // Oublie les cases cochees dont l'ingredient a disparu de la semaine.
 export function pruneChecked(list) {

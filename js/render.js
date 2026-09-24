@@ -3,14 +3,25 @@
 // une couche de reconciliation. La position de defilement est preservee.
 
 import { esc } from "./model.js";
-import { shoppingList, remaining, pruneChecked, categoryOf, bucketOf, DONE_KEY } from "./shopping.js";
+import { shoppingList, remaining, pruneChecked } from "./shopping.js";
 import { ui } from "./uistate.js";
 import { HEADS, VIEWS } from "./views.js";
 import { SHEETS } from "./sheets.js";
 
 const $ = sel => document.querySelector(sel);
 
+// Delai avant qu'un article coche/decoche ne soit reellement range (voir
+// refreshCheck plus bas) : le temps de laisser enchainer plusieurs coches
+// sans faire sauter la liste a chaque tap, comme dans Reminders.
+const CHECK_FLUSH_DELAY = 3000;
+let checkFlushTimer = null;
+
 export function render() {
+  // Un rendu complet remplace de toute facon ce qu'un rangement en attente
+  // (voir refreshCheck) aurait fini par faire : plus rien a rattraper.
+  clearTimeout(checkFlushTimer);
+  checkFlushTimer = null;
+
   const y = window.scrollY;
   // Un ingredient qui disparait de la semaine (repas retire, repas supprime...)
   // doit oublier sa case cochee tout de suite, pas seulement en rouvrant Courses.
@@ -147,55 +158,15 @@ export function closeDialog(value) {
 }
 
 // Mise a jour ciblee d'une ligne de courses : cocher ne doit pas reconstruire
-// la liste ni faire sauter le defilement en plein magasin. Un article coche
-// quitte son rayon pour rejoindre la pile "Pris" en fin de page (et l'inverse
-// en le decochant) : FLIP sur les deux groupes concernes (on mesure avant,
-// on reordonne le DOM, puis on anime depuis l'ancienne position). Si le
-// groupe de destination n'existe pas encore a l'ecran (premiere case cochee,
-// dernier article "Pris" decoche...), on se rabat sur un rendu complet.
+// la liste ni faire sauter le defilement en plein magasin. Comme dans
+// Reminders, l'article est marque tout de suite mais range (deplace vers son
+// rayon ou vers "Pris") seulement apres CHECK_FLUSH_DELAY sans nouvelle coche.
 export function refreshCheck(el) {
   const item = el.closest(".item");
-  const fromWrap = item && item.closest(".cat-items");
   const nowDone = item.classList.toggle("done");
   el.setAttribute("aria-pressed", nowDone);
 
   const list = shoppingList();
-  const destKey = nowDone ? DONE_KEY : categoryOf(item.dataset.key);
-  const destWrap = [...document.querySelectorAll(".cat-items")].find(w => w.dataset.cat === destKey);
-
-  if (!fromWrap || !destWrap) { render(); return; }
-
-  const nodes = [...fromWrap.children, ...destWrap.children];
-  const before = new Map(nodes.map(n => [n, n.getBoundingClientRect()]));
-  const byKey = new Map(nodes.map(n => [n.dataset.key, n]));
-
-  bucketOf(list, destKey).forEach(i => {
-    const node = byKey.get(i.key);
-    if (node) destWrap.appendChild(node);
-  });
-
-  // Rayon vide une fois l'article parti : on retire son entete, comme le ferait un rendu complet.
-  if (!fromWrap.children.length) {
-    fromWrap.previousElementSibling?.remove();
-    fromWrap.remove();
-  }
-
-  nodes.forEach(it => {
-    const dy = before.get(it).top - it.getBoundingClientRect().top;
-    if (!dy) return;
-    it.classList.add("sliding");
-    it.style.transition = "none";
-    it.style.transform = `translateY(${dy}px)`;
-    requestAnimationFrame(() => {
-      it.style.transition = "transform .32s cubic-bezier(.2,.7,.3,1)";
-      it.style.transform = "";
-    });
-    it.addEventListener("transitionend", () => {
-      it.style.transition = it.style.transform = "";
-      it.classList.remove("sliding");
-    }, { once: true });
-  });
-
   const done = list.length - remaining(list);
   const bar = $(".bar i");
   const label = $(".progress span");
@@ -216,4 +187,37 @@ export function refreshCheck(el) {
     $(".topbar .wrap").appendChild(b);
   }
   if (!done && btn) btn.remove();
+
+  clearTimeout(checkFlushTimer);
+  checkFlushTimer = setTimeout(flushChecks, CHECK_FLUSH_DELAY);
+}
+
+// Range reellement les articles en attente : un rendu complet suffit (voir
+// le commentaire en tete de render.js), on n'a qu'a faire glisser chaque
+// ligne depuis sa position precedente (FLIP, retrouvee par data-key).
+function flushChecks() {
+  checkFlushTimer = null;
+  const before = new Map(
+    [...document.querySelectorAll(".item")].map(it => [it.dataset.key, it.getBoundingClientRect()])
+  );
+
+  render();
+
+  document.querySelectorAll(".item").forEach(it => {
+    const b = before.get(it.dataset.key);
+    if (!b) return; // article apparu entre-temps (nouveau repas planifie) : pas d'ancienne position
+    const dy = b.top - it.getBoundingClientRect().top;
+    if (!dy) return;
+    it.classList.add("sliding");
+    it.style.transition = "none";
+    it.style.transform = `translateY(${dy}px)`;
+    requestAnimationFrame(() => {
+      it.style.transition = "transform .32s cubic-bezier(.2,.7,.3,1)";
+      it.style.transform = "";
+    });
+    it.addEventListener("transitionend", () => {
+      it.style.transition = it.style.transform = "";
+      it.classList.remove("sliding");
+    }, { once: true });
+  });
 }
