@@ -115,25 +115,25 @@ main{padding:14px 0 28px}
 
 /* ---------- semaine : agenda a bandes, toute la semaine sans defiler ---------- */
 .agenda{background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);overflow:hidden}
-.ag-day{display:flex;align-items:center;gap:10px;padding:9px 12px;transition:background .15s ease}
+.ag-day{display:flex;align-items:center;gap:8px;padding:5px 10px;transition:background .15s ease}
 .ag-day+.ag-day{border-top:1px solid var(--line)}
 .ag-day.today{background:color-mix(in srgb, var(--blue-soft) 45%, transparent)}
-.ag-date{flex:0 0 34px;display:flex;flex-direction:column;align-items:center;gap:2px}
-.ag-num{width:32px;height:32px;border-radius:50%;display:grid;place-items:center;font-size:16px;font-weight:800;color:var(--ink);letter-spacing:-.01em}
+.ag-date{flex:0 0 28px;display:flex;flex-direction:column;align-items:center;gap:1px}
+.ag-num{width:24px;height:24px;border-radius:50%;display:grid;place-items:center;font-size:13px;font-weight:800;color:var(--ink);letter-spacing:-.01em}
 .ag-day.today .ag-num{background:var(--blue);color:#fff}
 @media (prefers-color-scheme: dark){.ag-day.today .ag-num{color:#0F1218}}
-.ag-dow{font-size:9.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--pencil)}
-.ag-slots{flex:1;display:flex;gap:8px;min-width:0}
+.ag-dow{font-size:8px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--pencil)}
+.ag-slots{flex:1;display:flex;gap:6px;min-width:0}
 .ag-chip{
-  flex:1;min-width:0;min-height:44px;display:flex;flex-direction:column;justify-content:center;gap:1px;
-  padding:6px 10px;border-radius:10px;background:var(--blue-soft);text-align:left;
+  flex:1;min-width:0;display:flex;flex-direction:column;gap:0;
+  padding:3px 8px;border-radius:8px;background:var(--blue-soft);text-align:left;
   transition:filter .15s ease;
 }
 .ag-chip.empty{background:none;border:1px dashed var(--line)}
 .ag-chip:active{filter:brightness(.94)}
-.ag-chip-label{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--pencil)}
-.ag-chip-text{font-size:13.5px;font-weight:700;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.ag-chip.empty .ag-chip-text{color:var(--pencil);font-weight:500}
+.ag-chip-label{font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--pencil)}
+.ag-chip-line{font-size:12.5px;font-weight:700;line-height:1.25;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ag-chip-line.empty{color:var(--pencil);font-weight:500}
 
 /* ---------- courses : la page-carnet ---------- */
 .paper{

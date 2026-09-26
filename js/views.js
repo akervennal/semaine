@@ -50,11 +50,13 @@ export const VIEWS = {
       const chips = MOMENTS.map(m => {
         const id = d.k + "-" + m.k;
         const names = (state.week.slots[id] || []).map(p => (mealById(p.mealId) || {}).name).filter(Boolean);
-        const label = names.length ? names[0] + (names.length > 1 ? " +" + (names.length - 1) : "") : "Ajouter";
+        const lines = names.length
+          ? names.map(n => `<span class="ag-chip-line">${esc(n)}</span>`).join("")
+          : `<span class="ag-chip-line empty">Ajouter</span>`;
         const full = d.n + " " + m.n.toLowerCase() + " : " + (names.length ? names.join(", ") : "libre");
         return `<button class="ag-chip${names.length ? "" : " empty"}" data-act="slot" data-slot="${id}" aria-label="${esc(full)}">
             <span class="ag-chip-label">${esc(m.n)}</span>
-            <span class="ag-chip-text">${esc(label)}</span>
+            ${lines}
           </button>`;
       }).join("");
 
