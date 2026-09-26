@@ -2,8 +2,8 @@
 // sans effet de bord : les interactions passent par des attributs data-act
 // que actions.js intercepte par delegation.
 
-import { MOMENTS, orderedDays, parseIso, addDays, weekRange, esc, normKey, iso, cap } from "./model.js";
-import { state, mealById, plannedCount, canPersist } from "./store.js";
+import { MOMENTS, orderedDays, parseIso, addDays, esc, normKey, iso, cap } from "./model.js";
+import { state, mealById, canPersist } from "./store.js";
 import { shoppingList, doneCount, groupForDisplay, categoryOf } from "./shopping.js";
 import { ui } from "./uistate.js";
 
@@ -11,24 +11,22 @@ import { ui } from "./uistate.js";
 
 export const HEADS = {
   semaine() {
-    const n = plannedCount();
-    return `<div><h1>Semaine</h1><p class="sub">${esc(weekRange(state.week.start))} · ${n} repas planifié${n > 1 ? "s" : ""}</p></div>`;
+    return `<h1>Semaine</h1>`;
   },
 
   repas() {
-    return `<div><h1>Repas</h1><p class="sub">${state.meals.length} repas dans la bibliothèque</p></div>
+    return `<h1>Repas</h1>
       <button class="add" data-act="new-meal" aria-label="Créer un repas">+</button>`;
   },
 
   courses() {
-    const list = shoppingList();
-    const done = doneCount(list);
-    return `<div><h1>Courses</h1><p class="sub">${list.length ? `${list.length - done} à prendre · ${done} pris` : "Générée depuis la semaine"}</p></div>
+    const done = doneCount(shoppingList());
+    return `<h1>Courses</h1>
       ${done ? `<button class="btn quiet btn-sm" data-act="reset-checks">Tout décocher</button>` : ""}`;
   },
 
   plus() {
-    return `<div><h1>Plus</h1><p class="sub">Semaine, historique et données</p></div>`;
+    return `<h1>Plus</h1>`;
   }
 };
 
@@ -106,8 +104,7 @@ export const VIEWS = {
 
     const done = doneCount(list);
     return `<div class="progress"><span>${done}/${list.length}</span><span class="bar"><i style="width:${Math.round(done / list.length * 100)}%"></i></span></div>
-      <div class="card paper">${groupForDisplay(list).map(catGroupHtml).join("")}</div>
-      <p class="sub" style="text-align:center;margin-top:14px">Chaque ingrédient indique le jour et le repas qui le réclament. Touchez le rayon pour le classer.</p>`;
+      <div class="card paper">${groupForDisplay(list).map(catGroupHtml).join("")}</div>`;
   },
 
   /* ---------------- Plus ---------------- */

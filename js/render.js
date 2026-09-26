@@ -173,9 +173,6 @@ export function refreshCheck(el) {
   if (bar) bar.style.width = Math.round(done / list.length * 100) + "%";
   if (label) label.textContent = done + "/" + list.length;
 
-  const sub = $(".topbar .sub");
-  if (sub) sub.textContent = (list.length - done) + " à prendre · " + done + " pris";
-
   renderTabbar();
 
   const btn = $(".topbar [data-act='reset-checks']");
