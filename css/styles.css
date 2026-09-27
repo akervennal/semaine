@@ -127,11 +127,11 @@ main{padding:14px 0 28px}
 @media (prefers-color-scheme: dark){.ag-row.today .ag-num{color:#0F1218}}
 .ag-dow{display:block;margin-top:1px;font-size:8px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--pencil)}
 .ag-chip{display:block;width:100%;padding:3px 8px;border-radius:8px;background:var(--blue-soft);text-align:left;transition:filter .15s ease}
-.ag-chip.empty{background:none;border:1px dashed var(--line)}
+.ag-chip.ag-empty{background:none;border:1px dashed var(--line)}
 .ag-chip:active{filter:brightness(.94)}
 .ag-chip-label{display:block;font-size:8px;line-height:1.3;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--pencil)}
 .ag-chip-line{display:block;font-size:12.5px;line-height:1.3;font-weight:700;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.ag-chip-line.empty{color:var(--pencil);font-weight:500}
+.ag-chip-line.ag-empty{color:var(--pencil);font-weight:500}
 
 /* ---------- courses : la page-carnet ---------- */
 .paper{

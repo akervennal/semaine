@@ -50,9 +50,9 @@ export const VIEWS = {
         const names = (state.week.slots[id] || []).map(p => (mealById(p.mealId) || {}).name).filter(Boolean);
         const lines = names.length
           ? names.map(n => `<span class="ag-chip-line">${esc(n)}</span>`).join("")
-          : `<span class="ag-chip-line empty">Ajouter</span>`;
+          : `<span class="ag-chip-line ag-empty">Ajouter</span>`;
         const full = d.n + " " + m.n.toLowerCase() + " : " + (names.length ? names.join(", ") : "libre");
-        return `<button class="ag-chip${names.length ? "" : " empty"}" data-act="slot" data-slot="${id}" aria-label="${esc(full)}">
+        return `<button class="ag-chip${names.length ? "" : " ag-empty"}" data-act="slot" data-slot="${id}" aria-label="${esc(full)}">
             <span class="ag-chip-label">${esc(m.n)}</span>
             ${lines}
           </button>`;
