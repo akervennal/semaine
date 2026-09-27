@@ -113,26 +113,24 @@ main{padding:14px 0 28px}
 @media (prefers-color-scheme: dark){.add{color:#0F1218}}
 .add:active{transform:scale(.88)}
 
-/* ---------- semaine : agenda a bandes, toute la semaine sans defiler ---------- */
+/* ---------- semaine : agenda a bandes, toute la semaine sans defiler ----------
+   Mise en page volontairement sans flexbox imbrique (grid pour la ligne,
+   blocs simples a l'interieur) : chaque hauteur ne depend que de son propre
+   contenu, sans etirement implicite entre elements de tailles differentes. */
 .agenda{background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);overflow:hidden}
-.ag-day{display:flex;align-items:center;gap:8px;padding:5px 10px;transition:background .15s ease}
-.ag-day+.ag-day{border-top:1px solid var(--line)}
-.ag-day.today{background:color-mix(in srgb, var(--blue-soft) 45%, transparent)}
-.ag-date{flex:0 0 28px;display:flex;flex-direction:column;align-items:center;gap:1px}
-.ag-num{width:24px;height:24px;border-radius:50%;display:grid;place-items:center;font-size:13px;font-weight:800;color:var(--ink);letter-spacing:-.01em}
-.ag-day.today .ag-num{background:var(--blue);color:#fff}
-@media (prefers-color-scheme: dark){.ag-day.today .ag-num{color:#0F1218}}
-.ag-dow{font-size:8px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--pencil)}
-.ag-slots{flex:1;display:flex;gap:6px;min-width:0}
-.ag-chip{
-  flex:1;min-width:0;display:flex;flex-direction:column;gap:0;
-  padding:3px 8px;border-radius:8px;background:var(--blue-soft);text-align:left;
-  transition:filter .15s ease;
-}
+.ag-row{display:grid;grid-template-columns:32px 1fr 1fr;column-gap:8px;align-items:center;padding:6px 10px}
+.ag-row+.ag-row{border-top:1px solid var(--line)}
+.ag-row.today{background:color-mix(in srgb, var(--blue-soft) 45%, transparent)}
+.ag-date{text-align:center}
+.ag-num{display:block;width:24px;height:24px;line-height:24px;margin:0 auto;border-radius:50%;font-size:13px;font-weight:800;color:var(--ink)}
+.ag-row.today .ag-num{background:var(--blue);color:#fff}
+@media (prefers-color-scheme: dark){.ag-row.today .ag-num{color:#0F1218}}
+.ag-dow{display:block;margin-top:1px;font-size:8px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--pencil)}
+.ag-chip{display:block;width:100%;padding:3px 8px;border-radius:8px;background:var(--blue-soft);text-align:left;transition:filter .15s ease}
 .ag-chip.empty{background:none;border:1px dashed var(--line)}
 .ag-chip:active{filter:brightness(.94)}
-.ag-chip-label{font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--pencil)}
-.ag-chip-line{font-size:12.5px;font-weight:700;line-height:1.25;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ag-chip-label{display:block;font-size:8px;line-height:1.3;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--pencil)}
+.ag-chip-line{display:block;font-size:12.5px;line-height:1.3;font-weight:700;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .ag-chip-line.empty{color:var(--pencil);font-weight:500}
 
 /* ---------- courses : la page-carnet ---------- */

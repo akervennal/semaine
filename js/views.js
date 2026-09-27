@@ -58,9 +58,9 @@ export const VIEWS = {
           </button>`;
       }).join("");
 
-      return `<div class="ag-day${isToday ? " today" : ""}">
+      return `<div class="ag-row${isToday ? " today" : ""}">
           <div class="ag-date"><span class="ag-num">${date.getDate()}</span><span class="ag-dow">${esc(cap(d.k))}</span></div>
-          <div class="ag-slots">${chips}</div>
+          ${chips}
         </div>`;
     }).join("");
 
