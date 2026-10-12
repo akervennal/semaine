@@ -22,7 +22,10 @@ export const HEADS = {
   courses() {
     const done = doneCount(shoppingList());
     return `<h1>Courses</h1>
-      ${done ? `<button class="btn quiet btn-sm" data-act="reset-checks">Tout décocher</button>` : ""}`;
+      <div class="head-acts">
+        ${done ? `<button class="btn quiet btn-sm" data-act="reset-checks">Tout décocher</button>` : ""}
+        <button class="add green" data-act="new-extra" aria-label="Ajouter un article">+</button>
+      </div>`;
   },
 
   plus() {
@@ -36,7 +39,7 @@ export const VIEWS = {
 
   /* ---------------- Semaine ---------------- */
   // Agenda a bandes : une ligne par jour (date en badge + deux puces Midi/Soir),
-  // toute la semaine tient sur un ecran sans defiler.
+  // etire sur toute la hauteur de l'ecran (.fill), sans defiler.
   semaine() {
     const start = parseIso(state.week.start);
     const todayIso = iso(new Date());
@@ -64,14 +67,14 @@ export const VIEWS = {
         </div>`;
     }).join("");
 
-    const agenda = `<div class="agenda">${days}</div>`;
-
     if (!state.meals.length) {
+      // Pas d'etirement ici : la carte d'accueil prend deja une partie de l'ecran.
       return `<div class="card"><div class="empty"><strong>Commencez par vos repas</strong>
         La semaine se remplit avec les repas de votre bibliothèque.
-        <button class="btn" data-act="tab" data-tab="repas">Ouvrir la bibliothèque</button></div></div>` + agenda;
+        <button class="btn" data-act="tab" data-tab="repas">Ouvrir la bibliothèque</button></div></div>
+        <div class="agenda">${days}</div>`;
     }
-    return agenda;
+    return `<div class="agenda fill">${days}</div>`;
   },
 
   /* ---------------- Repas ---------------- */
@@ -99,6 +102,7 @@ export const VIEWS = {
     if (!list.length) {
       return `<div class="card"><div class="empty"><strong>Rien à acheter</strong>
         Planifiez des repas dans la semaine : la liste se remplit toute seule, sans doublons.
+        Le bouton + ajoute un article hors repas.
         <button class="btn" data-act="tab" data-tab="semaine">Voir la semaine</button></div></div>`;
     }
 
@@ -159,19 +163,22 @@ function catGroupHtml(g) {
 
 export function itemHtml(i) {
   const done = !!state.checked[i.key];
-  const cat = categoryOf(i.key);
+  const cat = categoryOf(i.cat);
+  // Le rayon se range sous i.cat (partage avec un ingredient du meme nom) ;
+  // data-extra permet a la feuille de rayon de proposer « Retirer de la liste ».
+  const attrs = `data-act="cat-pick" data-key="${esc(i.cat)}" data-name="${esc(i.name)}"${i.extra ? ` data-extra="${esc(i.extra)}"` : ""}`;
   // Une fois classe, le rayon est deja dit par l'entete du groupe : repeter
   // son nom sur chaque ligne serait redondant. On garde juste une petite
   // icone discrete pour pouvoir corriger. "Non classe" reste en toutes
   // lettres, pour qu'on pense a le ranger.
   const tag = cat
-    ? `<button class="tag icon" data-act="cat-pick" data-key="${esc(i.key)}" data-name="${esc(i.name)}" aria-label="Changer de rayon (${esc(cat)})">⋯</button>`
-    : `<button class="tag" data-act="cat-pick" data-key="${esc(i.key)}" data-name="${esc(i.name)}">Non classé</button>`;
-  return `<div class="item${done ? " done" : ""}" data-key="${esc(i.key)}">
+    ? `<button class="tag icon" ${attrs} aria-label="Changer de rayon (${esc(cat)})">⋯</button>`
+    : `<button class="tag" ${attrs}>Non classé</button>`;
+  return `<div class="item${i.extra ? " extra" : ""}${done ? " done" : ""}" data-key="${esc(i.key)}">
     <button class="check" data-act="check" data-key="${esc(i.key)}" aria-pressed="${done}">
       <span class="box"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 12.5l5 5 10-11"/></svg></span>
       <span class="name">${esc(i.name)}</span>
-      <span class="ctx">${i.ctx.map(esc).join("<br>")}</span>
+      ${i.ctx.length ? `<span class="ctx">${i.ctx.map(esc).join("<br>")}</span>` : ""}
     </button>
     ${tag}
   </div>`;

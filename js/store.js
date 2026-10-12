@@ -4,9 +4,12 @@
 // Modele :
 //   meal    = { id, name, ingredients: [string], fav: bool }   -> bibliotheque permanente
 //   planned = { mealId, people? }                              -> une occurrence dans un creneau
+//   extra   = { id, name }                                     -> article ajoute a la main a la liste
 // Un creneau contient une LISTE de planned : plusieurs repas peuvent partager le
 // meme jour/moment (ex. plat + dessert). La bibliotheque reste independante :
 // un meme repas peut occuper plusieurs creneaux sans y etre duplique.
+// Les extras (papier toilette, eponges...) appartiennent a la semaine en cours :
+// ils partent avec elle dans l'archive a la fin de semaine.
 
 import { SLOTS, iso, uid, normKey } from "./model.js";
 
@@ -26,7 +29,12 @@ export const canPersist = () => canStore;
 // Aucun jour impose : la semaine demarre le jour choisi (courses du samedi soir,
 // du dimanche midi, peu importe). Par defaut, aujourd'hui.
 export const emptyWeek = startIso => ({ start: startIso || iso(new Date()), slots: {} });
-export const blank = () => ({ meals: [], week: emptyWeek(), checked: {}, categories: {}, history: [] });
+export const blank = () => ({ meals: [], week: emptyWeek(), extras: [], checked: {}, categories: {}, history: [] });
+
+// Nettoie une liste d'extras venue du stockage ou d'un fichier importe.
+export const readExtras = raw => (Array.isArray(raw) ? raw : [])
+  .filter(x => x && x.id && typeof x.name === "string")
+  .map(x => ({ id: x.id, name: x.name }));
 
 // Anciennes donnees : un creneau contenait un objet planned unique, pas une liste.
 // On enveloppe au chargement pour ne rien perdre de ce qui etait deja planifie ou archive.
@@ -53,6 +61,7 @@ function read() {
     return {
       meals: Array.isArray(d.meals) ? d.meals : [],
       week: d.week && d.week.start ? { start: d.week.start, slots: migrateSlots(d.week.slots) } : emptyWeek(),
+      extras: readExtras(d.extras),
       checked: d.checked || {},
       categories: d.categories || {},
       history: Array.isArray(d.history)
@@ -161,6 +170,24 @@ export function setWeekStart(dateIso) {
   save();
 }
 
+/* ---------- articles ajoutes a la main ---------- */
+
+// Un meme nom (au sens de normKey) n'est ajoute qu'une fois. Renvoie false si deja present.
+export function addExtra(name) {
+  const k = normKey(name);
+  if (!k || state.extras.some(x => normKey(x.name) === k)) return false;
+  state.extras.push({ id: uid(), name: name.trim() });
+  save();
+  return true;
+}
+
+export function removeExtra(id) {
+  state.extras = state.extras.filter(x => x.id !== id);
+  save();
+}
+
+/* ---------- courses ---------- */
+
 export function toggleChecked(key) {
   if (state.checked[key]) delete state.checked[key];
   else state.checked[key] = 1;
@@ -182,7 +209,7 @@ export function setCategory(key, category) {
 /* ---------- fin de semaine et historique ---------- */
 
 export function endWeek() {
-  if (plannedCount()) {
+  if (plannedCount() || state.extras.length) {
     const names = [...new Set(
       SLOTS.flatMap(s => (state.week.slots[s] || []).map(p => (mealById(p.mealId) || {}).name))
         .filter(Boolean)
@@ -191,6 +218,7 @@ export function endWeek() {
       id: uid(),
       start: state.week.start,
       slots: JSON.parse(JSON.stringify(state.week.slots)),
+      extras: state.extras.map(x => Object.assign({}, x)),
       names
     });
     state.history = state.history.slice(0, 20);
@@ -198,12 +226,14 @@ export function endWeek() {
   const next = new Date(state.week.start + "T12:00:00");
   next.setDate(next.getDate() + 7);
   state.week = emptyWeek(iso(next));
+  state.extras = [];
   state.checked = {};
   save();
 }
 
 // Recopie une semaine archivee dans la semaine courante, sans toucher a l'archive.
-// Les repas supprimes entre-temps sont ignores.
+// Les repas supprimes entre-temps sont ignores. Les extras archives s'ajoutent
+// a ceux deja saisis cette semaine, sans doublon.
 export function redoWeek(historyId) {
   const w = state.history.find(x => x.id === historyId);
   if (!w) return;
@@ -213,6 +243,9 @@ export function redoWeek(historyId) {
     if (arr.length) slots[s] = arr;
   });
   state.week.slots = slots;
+  readExtras(w.extras).forEach(x => {
+    if (!state.extras.some(y => normKey(y.name) === normKey(x.name))) state.extras.push({ id: uid(), name: x.name });
+  });
   state.checked = {};
   save();
 }

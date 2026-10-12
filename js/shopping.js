@@ -4,10 +4,18 @@
 import { SLOTS, slotLabel, normKey, cap, CATEGORIES } from "./model.js";
 import { state, mealById, save } from "./store.js";
 
+// Prefixe des cles d'articles ajoutes a la main : un extra « Lait » reste une
+// ligne distincte (verte) du « Lait » d'un repas, et se coche independamment.
+const EXTRA_PREFIX = "+";
+
 /**
- * Fusionne les ingredients de tous les repas planifies.
- * Chaque ligne garde son contexte : pour quel jour, pour quel repas.
- * @returns {Array<{key:string, name:string, ctx:string[]}>} trie alphabetiquement
+ * Fusionne les ingredients de tous les repas planifies, puis les articles
+ * ajoutes a la main. Chaque ligne d'ingredient garde son contexte : pour quel
+ * jour, pour quel repas.
+ * `key` sert aux cases cochees ; `cat` au rayon, partage entre un ingredient
+ * et un extra du meme nom (on ne classe « Lait » qu'une fois).
+ * `extra` porte l'id de l'article ajoute a la main, absent sinon.
+ * @returns {Array<{key:string, cat:string, name:string, ctx:string[], extra?:string}>} trie alphabetiquement
  */
 export function shoppingList() {
   const map = new Map();
@@ -24,7 +32,7 @@ export function shoppingList() {
         const name = String(raw).trim();
         const key = normKey(name);
         if (!key) return;
-        if (!map.has(key)) map.set(key, { key, name: cap(name), ctx: [] });
+        if (!map.has(key)) map.set(key, { key, cat: key, name: cap(name), ctx: [] });
 
         const line = slotLabel(sid) + " · " + meal.name + (planned.people ? " (" + planned.people + " pers.)" : "");
         const entry = map.get(key);
@@ -32,6 +40,13 @@ export function shoppingList() {
         if (!entry.ctx.includes(line)) entry.ctx.push(line);
       });
     });
+  });
+
+  state.extras.forEach(x => {
+    const cat = normKey(x.name);
+    if (!cat) return;
+    const key = EXTRA_PREFIX + cat;
+    if (!map.has(key)) map.set(key, { key, cat, name: cap(x.name.trim()), ctx: [], extra: x.id });
   });
 
   return [...map.values()].sort((a, b) => a.name.localeCompare(b.name, "fr"));
@@ -59,7 +74,7 @@ export function groupForDisplay(list) {
   const done = [];
   list.forEach(i => {
     if (state.checked[i.key]) { done.push(i); return; }
-    const cat = categoryOf(i.key);
+    const cat = categoryOf(i.cat);
     if (!groups.has(cat)) groups.set(cat, []); // rayon inconnu (fichier importe d'une version future)
     groups.get(cat).push(i);
   });

@@ -181,7 +181,7 @@ export function refreshCheck(el) {
     b.className = "btn quiet btn-sm";
     b.dataset.act = "reset-checks";
     b.textContent = "Tout décocher";
-    $(".topbar .wrap").appendChild(b);
+    $(".topbar .head-acts").prepend(b);
   }
   if (!done && btn) btn.remove();
 

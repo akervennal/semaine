@@ -179,7 +179,23 @@ async function onClick(e) {
       break;
 
     case "cat-pick":
-      openSheet({ type: "cat", key: d.key, name: d.name });
+      openSheet({ type: "cat", key: d.key, name: d.name, extra: d.extra || null });
+      break;
+
+    case "new-extra": {
+      openSheet({ type: "extra" });
+      // Dans le meme geste que le tap : sinon Safari iOS refuse d'ouvrir le clavier.
+      const f = document.getElementById("xname");
+      if (f) f.focus();
+      break;
+    }
+
+    case "save-extra": saveExtra(); break;
+
+    case "del-extra":
+      store.removeExtra(d.id);
+      closeSheet();
+      render();
       break;
 
     case "cat-set":
@@ -325,7 +341,28 @@ function onInput(e) {
   }
 }
 
+function saveExtra() {
+  const f = document.getElementById("xname");
+  const name = f ? f.value.trim() : "";
+  if (!name) {
+    toast("Donnez un nom à l'article");
+    if (f) f.focus();
+    return;
+  }
+  if (!store.addExtra(name)) {
+    toast("Déjà dans la liste");
+    return;
+  }
+  closeSheet();
+  render();
+  toast(name + " ajouté");
+}
+
 function onKey(e) {
+  if (e.key === "Enter" && e.target.id === "xname") {
+    e.preventDefault();
+    saveExtra();
+  }
   // Entree dans un champ ingredient : ligne suivante, comme dans une liste papier.
   if (e.key === "Enter" && e.target.dataset && e.target.dataset.ing !== undefined) {
     e.preventDefault();
@@ -386,6 +423,7 @@ function importFile() {
           week: d.week && d.week.start
             ? { start: d.week.start, slots: store.migrateSlots(d.week.slots) }
             : store.emptyWeek(),
+          extras: store.readExtras(d.extras),
           checked: d.checked || {},
           categories: d.categories || {},
           history: Array.isArray(d.history)

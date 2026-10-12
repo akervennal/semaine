@@ -92,7 +92,21 @@ export const SHEETS = {
           <span class="body"><span class="title">${esc(c)}</span></span>
           ${c === current ? `<span class="chev" aria-hidden="true">✓</span>` : ""}
         </button>`).join("")}</section>`;
-    return sheetShell(s.name, "Choisir un rayon", body);
+    const remove = s.extra
+      ? `<button class="btn quiet" data-act="del-extra" data-id="${esc(s.extra)}" style="color:var(--red);margin-top:8px">Retirer de la liste</button>`
+      : "";
+    return sheetShell(s.name, "Choisir un rayon", body + remove);
+  },
+
+  /* Ajout d'un article hors repas a la liste de courses (voir store.addExtra) */
+  extra() {
+    const body = `<label class="field"><span class="eyebrow">Article</span>
+        <input class="input" id="xname" placeholder="Papier toilette" autocapitalize="sentences"
+               autocomplete="off" enterkeyhint="done">
+      </label>
+      <p class="sub" style="margin:0 2px">S'ajoute à la liste de cette semaine, en vert. Il part dans l'archive à la fin de la semaine.</p>
+      <div class="btn-row" style="margin-top:18px"><button class="btn green" data-act="save-extra">Ajouter</button></div>`;
+    return sheetShell("Ajouter un article", "", body);
   },
 
   /* Liste des semaines archivees */
@@ -140,7 +154,14 @@ export const SHEETS = {
       </section>`;
     }).join("");
 
-    const body = days + `
+    const extras = (w.extras || []).length
+      ? `<section class="card">
+          <div class="card-head"><span class="eyebrow">Ajoutés à la liste</span></div>
+          ${w.extras.map(x => `<div class="row"><span class="body"><span class="title">${esc(x.name)}</span></span></div>`).join("")}
+        </section>`
+      : "";
+
+    const body = days + extras + `
       <div class="btn-row" style="margin-top:14px"><button class="btn" data-act="redo" data-id="${w.id}">Refaire cette semaine</button></div>
       <button class="btn quiet" data-act="del-hist" data-id="${w.id}" style="color:var(--red);margin-top:8px">Supprimer cette archive</button>`;
 
